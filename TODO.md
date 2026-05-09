@@ -60,24 +60,24 @@ project/
 
 ## Tasks
 
-- [ ] Initialize Git repository
-- [ ] Create project folder structure
-- [ ] Add `__init__.py` files to all Python modules
+- [X] Initialize Git repository
+- [X] Create project folder structure
+- [X] Add `__init__.py` files to all Python modules
 - [ ] Configure Google Colab environment
 - [ ] Configure GPU runtime
-- [ ] Install dependencies
-- [ ] Create `requirements.txt`
+- [X] Install dependencies
+- [X] Create `requirements.txt`
 
 ## Required Libraries
 
-- [ ] PyTorch
-- [ ] Torchvision
-- [ ] Optuna
-- [ ] NumPy
-- [ ] Pandas
-- [ ] Matplotlib
-- [ ] PyYAML
-- [ ] tqdm
+- [X] PyTorch
+- [X] Torchvision
+- [X] Optuna
+- [X] NumPy
+- [X] Pandas
+- [X] Matplotlib
+- [X] PyYAML
+- [X] tqdm
 
 ---
 
@@ -85,18 +85,18 @@ project/
 
 ## Tasks
 
-- [ ] Download CIFAR-10 dataset
-- [ ] Create train/validation/test splits
-- [ ] Add normalization
+- [X] Download CIFAR-10 dataset
+- [X] Create train/validation/test splits
+- [X] Add normalization
 - [ ] Add data augmentation:
-  - [ ] RandomCrop
-  - [ ] RandomHorizontalFlip
-  - [ ] Normalize
+  - [X] RandomCrop
+  - [X] RandomHorizontalFlip
+  - [X] Normalize
 
 ## Deliverables
 
-- [ ] `data/dataloader.py`
-- [ ] `data/transforms.py`
+- [X] `data/dataloader.py`
+- [X] `data/transforms.py`
 
 ---
 

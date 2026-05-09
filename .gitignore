@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+data/raw/
+checkpoints/
+results/
+plots/
+
+.env
+.venv/
+venv/
