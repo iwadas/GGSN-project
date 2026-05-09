@@ -20,6 +20,23 @@ The experiments are conducted primarily on the CIFAR-10 dataset using Google Col
 
 ---
 
+# Project Structure
+```bash
+project/
+│
+├── data/
+├── models/
+├── nas/
+├── hpo/
+├── training/
+├── evaluation/
+├── utils/
+├── experiments/
+├── plots/
+├── reports/
+└── notebooks/
+```
+
 # Research Goal
 
 The main objective of this project is to compare different automated deep learning optimization strategies and evaluate their effectiveness in discovering efficient CNN architectures.
