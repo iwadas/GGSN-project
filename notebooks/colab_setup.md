@@ -2,6 +2,8 @@
 
 This project can run in Google Colab, but the runtime must be configured from the Colab UI.
 
+For the simplest workflow, open `notebooks/baseline_cnn_colab.ipynb` in Colab and run all cells.
+
 ## Runtime
 
 1. Open a notebook in Google Colab.
@@ -24,6 +26,13 @@ From the project root in Colab, install the dependencies with `uv`:
 ```bash
 pip install uv
 uv sync
+```
+
+If you are running cells directly in a Colab notebook kernel, prefer:
+
+```bash
+pip install uv
+uv pip install --system optuna numpy pandas matplotlib pyyaml tqdm
 ```
 
 If you prefer plain `pip` in Colab, this also works:

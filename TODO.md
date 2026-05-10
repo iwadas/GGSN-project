@@ -19,9 +19,9 @@ using CNN architectures trained on the CIFAR-10 dataset.
 
 # PROJECT CHECKLIST
 - [X] Stage 1 — Repository & Environment Setup
-- [ ] Stage 2 — CIFAR-10 Dataset Pipeline
-- [ ] Stage 3 — Manual CNN Baseline
-- [ ] Stage 4 — Training Pipeline
+- [X] Stage 2 — CIFAR-10 Dataset Pipeline
+- [X] Stage 3 — Manual CNN Baseline
+- [X] Stage 4 — Training Pipeline
 - [ ] Stage 5 — Hyperparameter Optimization (HPO)
 - [ ] Stage 6 — Evolutionary NAS
 - [ ] Stage 7 — Hardware-Aware Optimization
@@ -63,8 +63,8 @@ project/
 - [X] Initialize Git repository
 - [X] Create project folder structure
 - [X] Add `__init__.py` files to all Python modules
-- [ ] Configure Google Colab environment
-- [ ] Configure GPU runtime
+- [X] Configure Google Colab environment
+- [X] Configure GPU runtime
 - [X] Install dependencies
 - [X] Create `requirements.txt`
 
@@ -88,7 +88,7 @@ project/
 - [X] Download CIFAR-10 dataset
 - [X] Create train/validation/test splits
 - [X] Add normalization
-- [ ] Add data augmentation:
+- [X] Add data augmentation:
   - [X] RandomCrop
   - [X] RandomHorizontalFlip
   - [X] Normalize
@@ -108,27 +108,27 @@ Build a manually designed CNN architecture as the baseline model.
 
 ## Tasks
 
-- [ ] Implement baseline CNN model
-- [ ] Add configurable:
-  - [ ] Number of layers
-  - [ ] Filters
-  - [ ] Dropout
-  - [ ] Kernel sizes
+- [X] Implement baseline CNN model
+- [X] Add configurable:
+  - [X] Number of layers
+  - [X] Filters
+  - [X] Dropout
+  - [X] Kernel sizes
 
 ## Metrics
 
 Measure:
-- [ ] Accuracy
-- [ ] Loss
-- [ ] Parameter count
-- [ ] Training time
-- [ ] Inference latency
+- [X] Accuracy
+- [X] Loss
+- [X] Parameter count
+- [X] Training time
+- [X] Inference latency
 
 ## Deliverables
 
-- [ ] `models/baseline_cnn.py`
-- [ ] `training/trainer.py`
-- [ ] `evaluation/metrics.py`
+- [X] `models/baseline_cnn.py`
+- [X] `training/trainer.py`
+- [X] `evaluation/metrics.py`
 
 ---
 
@@ -136,19 +136,19 @@ Measure:
 
 ## Tasks
 
-- [ ] Implement generic training loop
-- [ ] Implement validation loop
-- [ ] Add early stopping
-- [ ] Add checkpoint saving
-- [ ] Add model loading
-- [ ] Add experiment logging
+- [X] Implement generic training loop
+- [X] Implement validation loop
+- [X] Add early stopping
+- [X] Add checkpoint saving
+- [X] Add model loading
+- [X] Add experiment logging
 
 ## Features
 
-- [ ] GPU support
-- [ ] Mixed precision training
-- [ ] Progress bars
-- [ ] TensorBoard or CSV logging
+- [X] GPU support
+- [X] Mixed precision training
+- [X] Progress bars
+- [X] TensorBoard or CSV logging
 
 ---
 
