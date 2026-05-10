@@ -2,7 +2,7 @@
 
 This project can run in Google Colab, but the runtime must be configured from the Colab UI.
 
-For the simplest workflow, open `notebooks/baseline_cnn_colab.ipynb` in Colab and run all cells.
+For the simplest workflow, open `notebooks/baseline_cnn_colab.ipynb` in Colab and run all cells. The notebook calls `run_baseline.py`, which reads settings from `experiments/baseline_cnn.yaml`.
 
 ## Runtime
 

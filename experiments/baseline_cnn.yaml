@@ -1,0 +1,29 @@
+seed: 42
+
+data:
+  data_dir: data/raw
+  batch_size: 64
+  validation_ratio: 0.1
+  num_workers: 0
+  download: true
+
+model:
+  num_layers: 3
+  base_filters: 32
+  filter_multiplier: 2
+  kernel_size: 3
+  dropout: 0.2
+  num_classes: 10
+
+training:
+  epochs: 5
+  learning_rate: 0.001
+  weight_decay: 0.0
+  early_stopping_patience: 5
+  use_mixed_precision: true
+
+outputs:
+  checkpoint_path: checkpoints/baseline_cnn.pt
+  log_csv_path: results/baseline_training_log.csv
+  summary_path: results/baseline_summary.json
+  curves_path: results/baseline_training_curves.png

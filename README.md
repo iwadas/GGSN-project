@@ -18,6 +18,8 @@ The project investigates how automated methods can design efficient convolutiona
 
 The experiments are conducted primarily on the CIFAR-10 dataset using Google Colab GPU resources.
 
+For instructions on where to add code and how to run experiments, see `PROJECT_GUIDE.md`.
+
 ---
 
 # Project Structure

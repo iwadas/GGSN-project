@@ -4,8 +4,6 @@ __pycache__/
 
 data/raw/
 checkpoints/
-results/
-plots/
 
 .env
 .venv/

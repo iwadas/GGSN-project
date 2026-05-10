@@ -22,7 +22,7 @@ using CNN architectures trained on the CIFAR-10 dataset.
 - [X] Stage 2 — CIFAR-10 Dataset Pipeline
 - [X] Stage 3 — Manual CNN Baseline
 - [X] Stage 4 — Training Pipeline
-- [ ] Stage 5 — Hyperparameter Optimization (HPO)
+- [X] Stage 5 — Hyperparameter Optimization (HPO)
 - [ ] Stage 6 — Evolutionary NAS
 - [ ] Stage 7 — Hardware-Aware Optimization
 - [ ] Stage 8 — Pareto Optimization
@@ -161,25 +161,25 @@ Automate tuning of CNN hyperparameters using Optuna.
 ## Search Space
 
 Optimize:
-- [ ] Learning rate
-- [ ] Batch size
-- [ ] Optimizer type
-- [ ] Dropout
-- [ ] Number of filters
-- [ ] Number of layers
+- [X] Learning rate
+- [X] Batch size
+- [X] Optimizer type
+- [X] Dropout
+- [X] Number of filters
+- [X] Number of layers
 
 ## Tasks
 
-- [ ] Integrate Optuna
-- [ ] Create objective function
-- [ ] Add pruning for weak trials
-- [ ] Save best hyperparameters
-- [ ] Compare HPO vs baseline
+- [X] Integrate Optuna
+- [X] Create objective function
+- [X] Add pruning for weak trials
+- [X] Save best hyperparameters
+- [X] Compare HPO vs baseline
 
 ## Deliverables
 
-- [ ] `hpo/optuna_search.py`
-- [ ] HPO experiment notebook
+- [X] `hpo/optuna_search.py`
+- [X] HPO experiment notebook
 
 ---
 
@@ -312,9 +312,9 @@ Create reusable experiment configuration system.
 
 ## Tasks
 
-- [ ] Add YAML experiment configs
-- [ ] Create experiment runner
-- [ ] Save experiment outputs automatically
+- [X] Add YAML experiment configs
+- [X] Create experiment runner
+- [X] Save experiment outputs automatically
 
 ## Example Config
 
@@ -334,7 +334,7 @@ search:
 ## Deliverables
 
 - [ ] `run_experiment.py`
-- [ ] `experiments/*.yaml`
+- [X] `experiments/*.yaml`
 
 ---
 
