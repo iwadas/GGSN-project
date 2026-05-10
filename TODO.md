@@ -23,7 +23,7 @@ using CNN architectures trained on the CIFAR-10 dataset.
 - [X] Stage 3 — Manual CNN Baseline
 - [X] Stage 4 — Training Pipeline
 - [X] Stage 5 — Hyperparameter Optimization (HPO)
-- [ ] Stage 6 — Evolutionary NAS
+- [X] Stage 6 — Evolutionary NAS
 - [ ] Stage 7 — Hardware-Aware Optimization
 - [ ] Stage 8 — Pareto Optimization
 - [ ] Stage 9 — DARTS-Inspired Differentiable Search
@@ -192,35 +192,35 @@ Implement an evolutionary algorithm for CNN architecture search.
 ## Search Space
 
 Architecture parameters:
-- [ ] Number of convolutional layers
-- [ ] Filter sizes
-- [ ] Kernel sizes
-- [ ] Pooling type
-- [ ] Skip connections
-- [ ] Dropout
+- [X] Number of convolutional layers
+- [X] Filter sizes
+- [X] Kernel sizes
+- [X] Pooling type
+- [X] Skip connections
+- [X] Dropout
 
 ## Evolutionary Components
 
 Implement:
-- [ ] Population initialization
-- [ ] Mutation
-- [ ] Selection
+- [X] Population initialization
+- [X] Mutation
+- [X] Selection
 - [ ] Crossover (optional)
-- [ ] Aging / regularized evolution
+- [X] Aging / regularized evolution
 
 ## Tasks
 
-- [ ] Create architecture genome representation
-- [ ] Generate random architectures
-- [ ] Train candidate models
-- [ ] Evaluate candidate fitness
-- [ ] Evolve population across generations
+- [X] Create architecture genome representation
+- [X] Generate random architectures
+- [X] Train candidate models
+- [X] Evaluate candidate fitness
+- [X] Evolve population across generations
 
 ## Deliverables
 
-- [ ] `nas/evolutionary_search.py`
-- [ ] `nas/mutation.py`
-- [ ] `nas/selection.py`
+- [X] `nas/evolutionary_search.py`
+- [X] `nas/mutation.py`
+- [X] `nas/selection.py`
 
 ---
 
