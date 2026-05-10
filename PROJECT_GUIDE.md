@@ -27,6 +27,7 @@ Model definitions. Add new neural networks here.
 
 Examples:
 - `models/baseline_cnn.py`
+- `models/search_cnn.py`
 - future `models/darts_model.py`
 
 `training/`
@@ -50,7 +51,7 @@ YAML configuration files. These should describe experiment settings, not contain
 Examples:
 - `experiments/baseline_cnn.yaml`
 - `experiments/hpo_baseline.yaml`
-- future `experiments/evolutionary_nas.yaml`
+- `experiments/evolutionary_nas.yaml`
 
 `scripts/`
 
@@ -59,6 +60,7 @@ Executable experiment entrypoints. These scripts read configs, run training/sear
 Current files:
 - `scripts/run_baseline.py`
 - `scripts/run_hpo.py`
+- `scripts/run_evolutionary_nas.py`
 
 Run it with:
 
@@ -72,6 +74,12 @@ Run HPO with:
 python scripts/run_hpo.py --config experiments/hpo_baseline.yaml
 ```
 
+Run evolutionary NAS with:
+
+```bash
+python scripts/run_evolutionary_nas.py --config experiments/evolutionary_nas.yaml
+```
+
 `notebooks/`
 
 Colab/Jupyter notebooks. Keep notebooks small. They should launch scripts, display tables/plots, and help with interactive inspection.
@@ -79,6 +87,7 @@ Colab/Jupyter notebooks. Keep notebooks small. They should launch scripts, displ
 Current files:
 - `notebooks/baseline_cnn_colab.ipynb`
 - `notebooks/hpo_baseline_colab.ipynb`
+- `notebooks/evolutionary_nas_colab.ipynb`
 - `notebooks/colab_setup.md`
 
 `utils/`
@@ -148,6 +157,24 @@ results/hpo_best_training_log.csv
 plots/hpo_optimization_history.png
 plots/hpo_best_training_curves.png
 checkpoints/hpo_best_baseline_cnn.pt
+```
+
+Run evolutionary NAS:
+
+```bash
+uv run python scripts/run_evolutionary_nas.py --config experiments/evolutionary_nas.yaml
+```
+
+Evolutionary NAS outputs include:
+
+```text
+results/evolutionary_population.csv
+results/evolutionary_best_genome.json
+results/evolutionary_summary.json
+results/evolutionary_best_training_log.csv
+plots/evolutionary_progress.png
+plots/evolutionary_best_training_curves.png
+checkpoints/evolutionary_best_cnn.pt
 ```
 
 ## Running In Colab

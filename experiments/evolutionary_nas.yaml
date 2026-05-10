@@ -1,0 +1,52 @@
+seed: 42
+
+data:
+  data_dir: data/raw
+  batch_size: 64
+  validation_ratio: 0.1
+  num_workers: 0
+  download: true
+
+model:
+  num_classes: 10
+
+training:
+  optimizer: adam
+  learning_rate: 0.001
+  weight_decay: 0.0
+  use_mixed_precision: true
+  early_stopping_patience: 3
+  final_epochs: 8
+
+search:
+  population_size: 6
+  generations: 3
+  children_per_generation: 6
+  candidate_epochs: 2
+  tournament_size: 3
+  mutation_rate: 0.3
+
+search_space:
+  num_layers:
+    low: 2
+    high: 4
+  filters:
+    choices: [16, 32, 64, 128]
+  kernel_sizes:
+    choices: [3, 5]
+  pooling_types:
+    choices: [max, avg]
+  skip_connections:
+    choices: [false, true]
+  dropout:
+    low: 0.0
+    high: 0.5
+
+outputs:
+  population_csv_path: results/evolutionary_population.csv
+  best_genome_path: results/evolutionary_best_genome.json
+  summary_path: results/evolutionary_summary.json
+  evolution_plot_path: plots/evolutionary_progress.png
+  best_checkpoint_path: checkpoints/evolutionary_best_cnn.pt
+  best_log_csv_path: results/evolutionary_best_training_log.csv
+  best_curves_path: plots/evolutionary_best_training_curves.png
