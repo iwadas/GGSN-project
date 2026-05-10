@@ -1,0 +1,16 @@
+[project]
+name = "ggsn-project"
+version = "0.1.0"
+description = "NAS and hyperparameter optimization experiments on CIFAR-10."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchvision",
+    "optuna",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "pyyaml",
+    "tqdm",
+]

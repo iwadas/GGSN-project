@@ -19,10 +19,10 @@ using CNN architectures trained on the CIFAR-10 dataset.
 
 # PROJECT CHECKLIST
 - [X] Stage 1 — Repository & Environment Setup
-- [ ] Stage 2 — CIFAR-10 Dataset Pipeline
-- [ ] Stage 3 — Manual CNN Baseline
-- [ ] Stage 4 — Training Pipeline
-- [ ] Stage 5 — Hyperparameter Optimization (HPO)
+- [X] Stage 2 — CIFAR-10 Dataset Pipeline
+- [X] Stage 3 — Manual CNN Baseline
+- [X] Stage 4 — Training Pipeline
+- [X] Stage 5 — Hyperparameter Optimization (HPO)
 - [ ] Stage 6 — Evolutionary NAS
 - [ ] Stage 7 — Hardware-Aware Optimization
 - [ ] Stage 8 — Pareto Optimization
@@ -60,24 +60,24 @@ project/
 
 ## Tasks
 
-- [ ] Initialize Git repository
-- [ ] Create project folder structure
-- [ ] Add `__init__.py` files to all Python modules
-- [ ] Configure Google Colab environment
-- [ ] Configure GPU runtime
-- [ ] Install dependencies
-- [ ] Create `requirements.txt`
+- [X] Initialize Git repository
+- [X] Create project folder structure
+- [X] Add `__init__.py` files to all Python modules
+- [X] Configure Google Colab environment
+- [X] Configure GPU runtime
+- [X] Install dependencies
+- [X] Create `requirements.txt`
 
 ## Required Libraries
 
-- [ ] PyTorch
-- [ ] Torchvision
-- [ ] Optuna
-- [ ] NumPy
-- [ ] Pandas
-- [ ] Matplotlib
-- [ ] PyYAML
-- [ ] tqdm
+- [X] PyTorch
+- [X] Torchvision
+- [X] Optuna
+- [X] NumPy
+- [X] Pandas
+- [X] Matplotlib
+- [X] PyYAML
+- [X] tqdm
 
 ---
 
@@ -85,18 +85,18 @@ project/
 
 ## Tasks
 
-- [ ] Download CIFAR-10 dataset
-- [ ] Create train/validation/test splits
-- [ ] Add normalization
-- [ ] Add data augmentation:
-  - [ ] RandomCrop
-  - [ ] RandomHorizontalFlip
-  - [ ] Normalize
+- [X] Download CIFAR-10 dataset
+- [X] Create train/validation/test splits
+- [X] Add normalization
+- [X] Add data augmentation:
+  - [X] RandomCrop
+  - [X] RandomHorizontalFlip
+  - [X] Normalize
 
 ## Deliverables
 
-- [ ] `data/dataloader.py`
-- [ ] `data/transforms.py`
+- [X] `data/dataloader.py`
+- [X] `data/transforms.py`
 
 ---
 
@@ -108,27 +108,27 @@ Build a manually designed CNN architecture as the baseline model.
 
 ## Tasks
 
-- [ ] Implement baseline CNN model
-- [ ] Add configurable:
-  - [ ] Number of layers
-  - [ ] Filters
-  - [ ] Dropout
-  - [ ] Kernel sizes
+- [X] Implement baseline CNN model
+- [X] Add configurable:
+  - [X] Number of layers
+  - [X] Filters
+  - [X] Dropout
+  - [X] Kernel sizes
 
 ## Metrics
 
 Measure:
-- [ ] Accuracy
-- [ ] Loss
-- [ ] Parameter count
-- [ ] Training time
-- [ ] Inference latency
+- [X] Accuracy
+- [X] Loss
+- [X] Parameter count
+- [X] Training time
+- [X] Inference latency
 
 ## Deliverables
 
-- [ ] `models/baseline_cnn.py`
-- [ ] `training/trainer.py`
-- [ ] `evaluation/metrics.py`
+- [X] `models/baseline_cnn.py`
+- [X] `training/trainer.py`
+- [X] `evaluation/metrics.py`
 
 ---
 
@@ -136,19 +136,19 @@ Measure:
 
 ## Tasks
 
-- [ ] Implement generic training loop
-- [ ] Implement validation loop
-- [ ] Add early stopping
-- [ ] Add checkpoint saving
-- [ ] Add model loading
-- [ ] Add experiment logging
+- [X] Implement generic training loop
+- [X] Implement validation loop
+- [X] Add early stopping
+- [X] Add checkpoint saving
+- [X] Add model loading
+- [X] Add experiment logging
 
 ## Features
 
-- [ ] GPU support
-- [ ] Mixed precision training
-- [ ] Progress bars
-- [ ] TensorBoard or CSV logging
+- [X] GPU support
+- [X] Mixed precision training
+- [X] Progress bars
+- [X] TensorBoard or CSV logging
 
 ---
 
@@ -161,25 +161,25 @@ Automate tuning of CNN hyperparameters using Optuna.
 ## Search Space
 
 Optimize:
-- [ ] Learning rate
-- [ ] Batch size
-- [ ] Optimizer type
-- [ ] Dropout
-- [ ] Number of filters
-- [ ] Number of layers
+- [X] Learning rate
+- [X] Batch size
+- [X] Optimizer type
+- [X] Dropout
+- [X] Number of filters
+- [X] Number of layers
 
 ## Tasks
 
-- [ ] Integrate Optuna
-- [ ] Create objective function
-- [ ] Add pruning for weak trials
-- [ ] Save best hyperparameters
-- [ ] Compare HPO vs baseline
+- [X] Integrate Optuna
+- [X] Create objective function
+- [X] Add pruning for weak trials
+- [X] Save best hyperparameters
+- [X] Compare HPO vs baseline
 
 ## Deliverables
 
-- [ ] `hpo/optuna_search.py`
-- [ ] HPO experiment notebook
+- [X] `hpo/optuna_search.py`
+- [X] HPO experiment notebook
 
 ---
 
@@ -312,9 +312,9 @@ Create reusable experiment configuration system.
 
 ## Tasks
 
-- [ ] Add YAML experiment configs
-- [ ] Create experiment runner
-- [ ] Save experiment outputs automatically
+- [X] Add YAML experiment configs
+- [X] Create experiment runner
+- [X] Save experiment outputs automatically
 
 ## Example Config
 
@@ -334,7 +334,7 @@ search:
 ## Deliverables
 
 - [ ] `run_experiment.py`
-- [ ] `experiments/*.yaml`
+- [X] `experiments/*.yaml`
 
 ---
 
