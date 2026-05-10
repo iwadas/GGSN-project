@@ -1,0 +1,8 @@
+{
+  "learning_rate": 0.0010666213335797023,
+  "batch_size": 128,
+  "optimizer": "sgd",
+  "dropout": 0.005718006911382245,
+  "base_filters": 16,
+  "num_layers": 4
+}
