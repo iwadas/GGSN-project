@@ -14,9 +14,12 @@ import torch
 from torch import nn
 
 from data.dataloader import get_cifar10_dataloaders
-from evaluation.metrics import count_parameters, evaluate, measure_inference_latency
+from evaluation.latency import measure_inference_latency
+from evaluation.metrics import count_parameters, evaluate
+from evaluation.pareto import plot_pareto_analysis
 from hpo.optuna_search import build_optimizer
 from models.search_cnn import build_search_cnn_from_genome
+from nas.fitness import compute_fitness
 from nas.mutation import Genome, mutate_genome, random_genome
 from nas.selection import tournament_selection
 from training.trainer import fit, get_default_device, train_one_epoch
@@ -35,6 +38,9 @@ class EvaluatedIndividual:
     train_loss: float
     validation_loss: float
     parameters: int
+    latency_ms: float | None
+    parameter_penalty: float
+    latency_penalty: float
 
     def as_record(self) -> dict[str, Any]:
         return {
@@ -46,6 +52,9 @@ class EvaluatedIndividual:
             "train_loss": self.train_loss,
             "validation_loss": self.validation_loss,
             "parameters": self.parameters,
+            "latency_ms": self.latency_ms,
+            "parameter_penalty": self.parameter_penalty,
+            "latency_penalty": self.latency_penalty,
             "genome": json.dumps(self.genome),
             "num_layers": self.genome["num_layers"],
             "filters": json.dumps(self.genome["filters"]),
@@ -84,6 +93,7 @@ def evaluate_genome(
     training_config = config["training"]
     search_config = config["search"]
     model_config = config["model"]
+    hardware_config = config.get("hardware_aware", {})
     device = get_default_device()
 
     model = build_search_cnn_from_genome(
@@ -120,18 +130,37 @@ def evaluate_genome(
         raise ValueError("candidate_epochs must be at least 1.")
 
     validation_accuracy = validation_result.accuracy
-    fitness = validation_accuracy
+    parameters = count_parameters(model)
+    latency_ms = None
+    if str(search_config.get("fitness_mode", "accuracy")).lower() == "hardware_aware":
+        latency_ms = measure_inference_latency(
+            model=model,
+            input_shape=tuple(hardware_config.get("input_shape", (1, 3, 32, 32))),
+            device=device,
+            warmup_steps=int(hardware_config.get("latency_warmup_steps", 10)),
+            measured_steps=int(hardware_config.get("latency_measured_steps", 30)),
+        )
+    fitness_result = compute_fitness(
+        accuracy=validation_accuracy,
+        parameters=parameters,
+        latency_ms=latency_ms,
+        search_config=search_config,
+        hardware_config=hardware_config,
+    )
 
     return EvaluatedIndividual(
         generation=generation,
         individual_id=individual_id,
         genome=genome,
-        fitness=fitness,
+        fitness=fitness_result.fitness,
         validation_accuracy=validation_accuracy,
         train_accuracy=train_result.accuracy,
         train_loss=train_result.loss,
         validation_loss=validation_result.loss,
-        parameters=count_parameters(model),
+        parameters=parameters,
+        latency_ms=latency_ms,
+        parameter_penalty=fitness_result.parameter_penalty,
+        latency_penalty=fitness_result.latency_penalty,
     )
 
 
@@ -162,7 +191,7 @@ def plot_evolution_history(records_path: str | Path, output_path: str | Path) ->
     ax.plot(best.index, best.values, marker="o", label="best fitness")
     ax.plot(mean.index, mean.values, marker="o", label="mean fitness")
     ax.set_xlabel("Generation")
-    ax.set_ylabel("Validation accuracy")
+    ax.set_ylabel("Fitness")
     ax.set_title("Evolutionary NAS Progress")
     ax.legend()
     fig.tight_layout()
@@ -224,7 +253,14 @@ def train_best_architecture(
     model.to(device)
 
     test_result = evaluate(model, test_loader, criterion, device)
-    latency_ms = measure_inference_latency(model, device=device)
+    hardware_config = config.get("hardware_aware", {})
+    latency_ms = measure_inference_latency(
+        model,
+        input_shape=tuple(hardware_config.get("input_shape", (1, 3, 32, 32))),
+        device=device,
+        warmup_steps=int(hardware_config.get("latency_warmup_steps", 20)),
+        measured_steps=int(hardware_config.get("latency_measured_steps", 100)),
+    )
     plot_training_curves(
         log_csv_path=output_config["best_log_csv_path"],
         output_path=output_config["best_curves_path"],
@@ -354,6 +390,7 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
         records_path=records_path,
         output_path=output_config["evolution_plot_path"],
     )
+    pareto_summary = create_pareto_analysis(records_path, output_config)
     best_model_summary = train_best_architecture(best_individual["genome"], config)
 
     summary = {
@@ -363,6 +400,7 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
         "evaluated_individuals": individual_id,
         "best_search_fitness": best_individual["fitness"],
         "best_search_record": best_individual["record"],
+        "pareto": pareto_summary,
         "best_model": best_model_summary,
     }
 
@@ -372,3 +410,42 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
         json.dump(summary, file, indent=2)
 
     return summary
+
+
+def create_pareto_analysis(
+    records_path: str | Path,
+    output_config: dict[str, Any],
+) -> dict[str, Any]:
+    """Compute Pareto-efficient candidates and save trade-off plots."""
+    pareto_csv_path = output_config.get(
+        "pareto_csv_path",
+        "results/evolutionary_pareto_frontier.csv",
+    )
+    accuracy_latency_plot_path = output_config.get(
+        "accuracy_latency_plot_path",
+        "plots/evolutionary_accuracy_vs_latency.png",
+    )
+    accuracy_parameters_plot_path = output_config.get(
+        "accuracy_parameters_plot_path",
+        "plots/evolutionary_accuracy_vs_parameters.png",
+    )
+    pareto_plot_path = output_config.get(
+        "pareto_plot_path",
+        "plots/evolutionary_pareto_frontier.png",
+    )
+
+    pareto = plot_pareto_analysis(
+        results_csv_path=records_path,
+        pareto_csv_path=pareto_csv_path,
+        accuracy_latency_path=accuracy_latency_plot_path,
+        accuracy_parameters_path=accuracy_parameters_plot_path,
+        pareto_frontier_path=pareto_plot_path,
+    )
+
+    return {
+        "pareto_count": int(len(pareto)),
+        "pareto_csv_path": str(pareto_csv_path),
+        "accuracy_latency_plot_path": str(accuracy_latency_plot_path),
+        "accuracy_parameters_plot_path": str(accuracy_parameters_plot_path),
+        "pareto_plot_path": str(pareto_plot_path),
+    }

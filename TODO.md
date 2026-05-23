@@ -24,8 +24,8 @@ using CNN architectures trained on the CIFAR-10 dataset.
 - [X] Stage 4 — Training Pipeline
 - [X] Stage 5 — Hyperparameter Optimization (HPO)
 - [X] Stage 6 — Evolutionary NAS
-- [ ] Stage 7 — Hardware-Aware Optimization
-- [ ] Stage 8 — Pareto Optimization
+- [X] Stage 7 — Hardware-Aware Optimization
+- [X] Stage 8 — Pareto Optimization
 - [ ] Stage 9 — DARTS-Inspired Differentiable Search
 - [ ] Stage 10 — Experiment System
 - [ ] Stage 11 — Logging & Results
@@ -235,10 +235,10 @@ Optimize architectures using multiple objectives:
 
 ## Tasks
 
-- [ ] Measure inference latency
-- [ ] Measure parameter count
-- [ ] Add latency penalty to fitness
-- [ ] Add parameter penalty to fitness
+- [X] Measure inference latency
+- [X] Measure parameter count
+- [X] Add latency penalty to fitness
+- [X] Add parameter penalty to fitness
 
 ## Fitness Function
 
@@ -248,8 +248,8 @@ Fitness = Accuracy - α * Params - β * Latency
 
 ## Deliverables
 
-- [ ] `evaluation/latency.py`
-- [ ] `nas/fitness.py`
+- [X] `evaluation/latency.py`
+- [X] `nas/fitness.py`
 
 ---
 
@@ -264,15 +264,15 @@ Analyze trade-offs between:
 
 ## Tasks
 
-- [ ] Compute Pareto frontier
-- [ ] Visualize Pareto-optimal models
-- [ ] Compare efficient architectures
+- [X] Compute Pareto frontier
+- [X] Visualize Pareto-optimal models
+- [X] Compare efficient architectures
 
 ## Visualizations
 
-- [ ] Accuracy vs Latency
-- [ ] Accuracy vs Parameters
-- [ ] Pareto Frontier
+- [X] Accuracy vs Latency
+- [X] Accuracy vs Parameters
+- [X] Pareto Frontier
 
 ---
 
