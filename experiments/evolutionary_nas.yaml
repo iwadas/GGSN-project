@@ -16,7 +16,7 @@ training:
   weight_decay: 0.0
   use_mixed_precision: true
   early_stopping_patience: 3
-  final_epochs: 8
+  final_epochs: 25
 
 search:
   population_size: 6

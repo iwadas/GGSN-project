@@ -12,8 +12,8 @@ model:
   num_classes: 10
 
 training:
-  trial_epochs: 3
-  final_epochs: 8
+  trial_epochs: 5
+  final_epochs: 20
   weight_decay: 0.0
   use_mixed_precision: true
   early_stopping_patience: 3
@@ -21,7 +21,7 @@ training:
 search:
   study_name: baseline_cnn_hpo
   direction: maximize
-  n_trials: 10
+  n_trials: 30
   timeout_seconds: null
   pruner:
     type: median
