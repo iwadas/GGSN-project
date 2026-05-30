@@ -10,14 +10,14 @@ import torch.nn.functional as F
 from torch import nn
 
 
-OPS_NAMES = ["conv3x3", "conv5x5", "skip_connect", "max_pool_3x3", "avg_pool_3x3"]
+OPS_NAMES = ["conv3x3", "conv5x5", "skip_connect", "dil_conv_3x3", "sep_conv_3x3"]
 
 OPS_TO_GENOME: dict[str, dict[str, Any]] = {
-    "conv3x3": {"kernel_size": 3, "pooling_type": "max", "skip": False},
-    "conv5x5": {"kernel_size": 5, "pooling_type": "max", "skip": False},
+    "conv3x3":      {"kernel_size": 3, "pooling_type": "max", "skip": False},
+    "conv5x5":      {"kernel_size": 5, "pooling_type": "max", "skip": False},
     "skip_connect": {"kernel_size": 3, "pooling_type": "max", "skip": True},
-    "max_pool_3x3": {"kernel_size": 3, "pooling_type": "max", "skip": False},
-    "avg_pool_3x3": {"kernel_size": 3, "pooling_type": "avg", "skip": False},
+    "dil_conv_3x3": {"kernel_size": 5, "pooling_type": "max", "skip": False},
+    "sep_conv_3x3": {"kernel_size": 3, "pooling_type": "max", "skip": False},
 }
 
 
@@ -74,19 +74,20 @@ class MixedOp(nn.Module):
                         nn.BatchNorm2d(C_out),
                         nn.MaxPool2d(2),
                     )
-            elif op_name == "max_pool_3x3":
+            elif op_name == "dil_conv_3x3":
                 op = nn.Sequential(
+                    nn.Conv2d(C_in, C_out, 3, dilation=2, padding=2, bias=False),
+                    nn.BatchNorm2d(C_out),
+                    nn.ReLU(inplace=True),
                     nn.MaxPool2d(2),
-                    nn.Conv2d(C_in, C_out, 1, bias=False),
-                    nn.BatchNorm2d(C_out),
-                    nn.ReLU(inplace=True),
                 )
-            elif op_name == "avg_pool_3x3":
+            elif op_name == "sep_conv_3x3":
                 op = nn.Sequential(
-                    nn.AvgPool2d(2),
+                    nn.Conv2d(C_in, C_in, 3, groups=C_in, padding=1, bias=False),
                     nn.Conv2d(C_in, C_out, 1, bias=False),
                     nn.BatchNorm2d(C_out),
                     nn.ReLU(inplace=True),
+                    nn.MaxPool2d(2),
                 )
             else:
                 raise ValueError(f"Unknown operation: {op_name}")

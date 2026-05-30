@@ -1,15 +1,18 @@
 {
-  "epochs": 5,
+  "seed": 42,
+  "epochs": 20,
   "batch_size": 64,
   "learning_rate": 0.001,
   "num_layers": 3,
   "base_filters": 32,
   "dropout": 0.2,
   "parameters": 94762,
-  "best_validation_accuracy": 0.5752,
-  "test_loss": 1.197270842552185,
-  "test_accuracy": 0.5752,
-  "latency_ms": 0.4723824499978946,
+  "best_validation_accuracy": 0.687,
+  "test_loss": 0.9109433270454407,
+  "test_accuracy": 0.6781,
+  "latency_ms": 0.6086168399997405,
   "device": "cuda",
-  "gpu": "Tesla T4"
+  "gpu": "Tesla T4",
+  "checkpoint_path": "checkpoints/baseline_cnn.pt",
+  "log_csv_path": "results/baseline_training_log.csv"
 }

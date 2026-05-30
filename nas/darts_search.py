@@ -54,6 +54,7 @@ def search_architecture(
     search_epochs = int(search_config.get("search_epochs", 5))
     initial_temp = float(search_config.get("temperature", 1.0))
     final_temp = float(search_config.get("temperature_final", 0.1))
+    arch_entropy_weight = float(search_config.get("arch_entropy_weight", 0.0))
     scaler_enabled = bool(training_config["use_mixed_precision"]) and device.type == "cuda"
     scaler = torch.amp.GradScaler(device="cuda", enabled=scaler_enabled)
 
@@ -93,6 +94,13 @@ def search_architecture(
             with torch.autocast(device_type=device.type, enabled=scaler_enabled):
                 logits = model(inputs)
                 loss = criterion(logits, targets)
+                if arch_entropy_weight > 0.0:
+                    entropy = sum(
+                        -(torch.softmax(alpha / model.temperature, dim=0)
+                          * torch.log_softmax(alpha / model.temperature, dim=0)).sum()
+                        for alpha in model.arch_parameters()
+                    )
+                    loss = loss + arch_entropy_weight * entropy
 
             if scaler.is_enabled():
                 scaler.scale(loss).backward()

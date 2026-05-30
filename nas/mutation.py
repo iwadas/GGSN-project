@@ -10,6 +10,22 @@ from typing import Any
 Genome = dict[str, Any]
 
 
+def _generate_monotonic_filters(
+    search_space: dict[str, Any],
+    num_layers: int,
+    rng: random.Random,
+) -> list[int]:
+    """Generate non-decreasing filter counts for a more regular architecture."""
+    choices = sorted(search_space["filters"]["choices"])
+    filters: list[int] = []
+    current_min_idx = 0
+    for _ in range(num_layers):
+        idx = rng.randint(current_min_idx, len(choices) - 1)
+        filters.append(int(choices[idx]))
+        current_min_idx = idx
+    return filters
+
+
 def random_genome(search_space: dict[str, Any], rng: random.Random) -> Genome:
     """Create one random architecture genome from a search-space config."""
     num_layers = rng.randint(
@@ -18,10 +34,7 @@ def random_genome(search_space: dict[str, Any], rng: random.Random) -> Genome:
     )
     return {
         "num_layers": num_layers,
-        "filters": [
-            int(rng.choice(search_space["filters"]["choices"]))
-            for _ in range(num_layers)
-        ],
+        "filters": _generate_monotonic_filters(search_space, num_layers, rng),
         "kernel_sizes": [
             int(rng.choice(search_space["kernel_sizes"]["choices"]))
             for _ in range(num_layers)
@@ -111,4 +124,38 @@ def mutate_genome(
             float(search_space["dropout"]["high"]),
         )
 
+    mutated["filters"] = _generate_monotonic_filters(
+        search_space, int(mutated["num_layers"]), rng
+    )
+
     return normalize_genome_layers(mutated, search_space, rng)
+
+
+def crossover_genomes(
+    parent_a: Genome,
+    parent_b: Genome,
+    search_space: dict[str, Any],
+    rng: random.Random,
+) -> Genome:
+    """Create a child genome by crossing over two parent genomes at a random layer index."""
+    num_layers_a = int(parent_a["num_layers"])
+    num_layers_b = int(parent_b["num_layers"])
+
+    child = copy.deepcopy(parent_a if num_layers_a >= num_layers_b else parent_b)
+    shorter = parent_b if num_layers_a >= num_layers_b else parent_a
+    shorter_layers = int(shorter["num_layers"])
+
+    if shorter_layers < 2:
+        return normalize_genome_layers(copy.deepcopy(parent_a), search_space, rng)
+
+    crossover_point = rng.randint(1, shorter_layers - 1)
+
+    layer_fields = ["filters", "kernel_sizes", "pooling_types", "skip_connections"]
+    for field in layer_fields:
+        child[field][:crossover_point] = copy.deepcopy(shorter[field][:crossover_point])
+
+    child["filters"] = _generate_monotonic_filters(
+        search_space, int(child["num_layers"]), rng
+    )
+
+    return normalize_genome_layers(child, search_space, rng)

@@ -19,12 +19,13 @@ training:
   final_epochs: 25
 
 search:
-  population_size: 6
-  generations: 3
+  population_size: 12
+  generations: 8
   children_per_generation: 6
   candidate_epochs: 2
-  tournament_size: 3
+  tournament_size: 4
   mutation_rate: 0.3
+  crossover_rate: 0.2
   fitness_mode: hardware_aware
 
 hardware_aware:

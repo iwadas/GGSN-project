@@ -1,0 +1,74 @@
+{
+  "generations": 3,
+  "population_size": 6,
+  "children_per_generation": 6,
+  "evaluated_individuals": 24,
+  "best_search_fitness": 0.6621164128999977,
+  "best_search_record": {
+    "generation": 1,
+    "individual_id": 10,
+    "fitness": 0.6621164128999977,
+    "validation_accuracy": 0.664,
+    "train_accuracy": 0.6301777777777777,
+    "train_loss": 1.035188552602132,
+    "validation_loss": 0.957593403339386,
+    "parameters": 88490,
+    "latency_ms": 0.9986871000023712,
+    "parameter_penalty": 0.0008849,
+    "latency_penalty": 0.0009986871000023712,
+    "genome": "{\"num_layers\": 4, \"filters\": [64, 32, 16, 128], \"kernel_sizes\": [3, 3, 5, 5], \"pooling_types\": [\"max\", \"avg\", \"max\", \"max\"], \"skip_connections\": [false, false, true, true], \"dropout\": 0.0010776891757132145}",
+    "num_layers": 4,
+    "filters": "[64, 32, 16, 128]",
+    "kernel_sizes": "[3, 3, 5, 5]",
+    "pooling_types": "[\"max\", \"avg\", \"max\", \"max\"]",
+    "skip_connections": "[false, false, true, true]",
+    "dropout": 0.0010776891757132145
+  },
+  "pareto": {
+    "pareto_count": 14,
+    "pareto_csv_path": "results/evolutionary_pareto_frontier.csv",
+    "accuracy_latency_plot_path": "plots/evolutionary_accuracy_vs_latency.png",
+    "accuracy_parameters_plot_path": "plots/evolutionary_accuracy_vs_parameters.png",
+    "pareto_plot_path": "plots/evolutionary_pareto_frontier.png"
+  },
+  "best_model": {
+    "genome": {
+      "num_layers": 4,
+      "filters": [
+        64,
+        32,
+        16,
+        128
+      ],
+      "kernel_sizes": [
+        3,
+        3,
+        5,
+        5
+      ],
+      "pooling_types": [
+        "max",
+        "avg",
+        "max",
+        "max"
+      ],
+      "skip_connections": [
+        false,
+        false,
+        true,
+        true
+      ],
+      "dropout": 0.0010776891757132145
+    },
+    "final_epochs": 25,
+    "parameters": 88490,
+    "best_validation_accuracy": 0.7862,
+    "test_loss": 0.6249408935546875,
+    "test_accuracy": 0.7851,
+    "latency_ms": 0.8237762999973105,
+    "device": "cuda",
+    "gpu": "Tesla T4",
+    "checkpoint_path": "checkpoints/evolutionary_best_cnn.pt",
+    "log_csv_path": "results/evolutionary_best_training_log.csv"
+  }
+}

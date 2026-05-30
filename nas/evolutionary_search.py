@@ -20,7 +20,7 @@ from evaluation.pareto import plot_pareto_analysis
 from hpo.optuna_search import build_optimizer
 from models.search_cnn import build_search_cnn_from_genome
 from nas.fitness import compute_fitness
-from nas.mutation import Genome, mutate_genome, random_genome
+from nas.mutation import Genome, crossover_genomes, mutate_genome, random_genome
 from nas.selection import tournament_selection
 from training.trainer import fit, get_default_device, train_one_epoch
 from utils.plotting import plot_training_curves
@@ -336,6 +336,7 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
     append_records_csv(records_path, initial_records)
 
     children_per_generation = int(config["search"]["children_per_generation"])
+    crossover_rate = float(config["search"].get("crossover_rate", 0.0))
     for generation in range(1, int(config["search"]["generations"]) + 1):
         generation_records = []
         for _ in range(children_per_generation):
@@ -350,6 +351,19 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
                 rng=rng,
                 mutation_rate=float(config["search"]["mutation_rate"]),
             )
+
+            if crossover_rate > 0.0 and rng.random() < crossover_rate and len(active_population) >= 2:
+                parent_b = tournament_selection(
+                    active_population,
+                    int(config["search"]["tournament_size"]),
+                    rng,
+                )
+                child_genome = crossover_genomes(
+                    parent["genome"],
+                    parent_b["genome"],
+                    search_space=config["search_space"],
+                    rng=rng,
+                )
             evaluated = evaluate_genome(
                 genome=child_genome,
                 individual_id=individual_id,

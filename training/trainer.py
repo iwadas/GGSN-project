@@ -168,6 +168,7 @@ def fit(
     early_stopping_patience: int | None = 5,
     checkpoint_path: str | Path | None = "checkpoints/best_model.pt",
     log_csv_path: str | Path | None = "results/training_log.csv",
+    scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
 ) -> TrainingResult:
     """Train a model with validation, checkpointing, early stopping, and CSV logs."""
     if epochs < 1:
@@ -234,6 +235,9 @@ def fit(
             f"val_loss={validation_result.loss:.4f} "
             f"val_acc={validation_result.accuracy:.4f}"
         )
+
+        if scheduler is not None:
+            scheduler.step()
 
         if early_stopping is not None and early_stopping.step(
             validation_result.accuracy

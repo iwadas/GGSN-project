@@ -60,6 +60,14 @@ def run_experiment(config: dict[str, Any]) -> dict[str, Any]:
     )
     criterion = nn.CrossEntropyLoss()
 
+    scheduler = None
+    if bool(training_config.get("use_cosine_scheduler", False)):
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=int(training_config["epochs"]),
+            eta_min=float(training_config["learning_rate"]) * 0.01,
+        )
+
     training_result = fit(
         model=model,
         train_loader=train_loader,
@@ -71,6 +79,7 @@ def run_experiment(config: dict[str, Any]) -> dict[str, Any]:
         early_stopping_patience=int(training_config["early_stopping_patience"]),
         checkpoint_path=output_config["checkpoint_path"],
         log_csv_path=output_config["log_csv_path"],
+        scheduler=scheduler,
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

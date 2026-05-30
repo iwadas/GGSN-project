@@ -1,0 +1,28 @@
+{
+  "num_layers": 4,
+  "filters": [
+    64,
+    32,
+    16,
+    128
+  ],
+  "kernel_sizes": [
+    3,
+    3,
+    5,
+    5
+  ],
+  "pooling_types": [
+    "max",
+    "avg",
+    "max",
+    "max"
+  ],
+  "skip_connections": [
+    false,
+    false,
+    true,
+    true
+  ],
+  "dropout": 0.0010776891757132145
+}
