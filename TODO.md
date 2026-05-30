@@ -284,23 +284,25 @@ Implement simplified differentiable architecture search.
 
 ## Tasks
 
-- [ ] Add operator weighting
-- [ ] Implement softmax-weighted operations
-- [ ] Train architecture parameters with gradient descent
-- [ ] Compare with evolutionary NAS
+- [X] Add operator weighting
+- [X] Implement softmax-weighted operations
+- [X] Train architecture parameters with gradient descent
+- [X] Compare with evolutionary NAS
 
 ## Candidate Operations
 
-- [ ] Conv3x3
-- [ ] Conv5x5
-- [ ] Skip connection
-- [ ] MaxPool
-- [ ] AvgPool
+- [X] Conv3x3
+- [X] Conv5x5
+- [X] Skip connection
+- [X] MaxPool
+- [X] AvgPool
 
 ## Deliverables
 
-- [ ] `models/darts_model.py`
-- [ ] `nas/darts_search.py`
+- [X] `models/darts_model.py`
+- [X] `nas/darts_search.py`
+- [X] `experiments/darts_search.yaml`
+- [X] `scripts/run_darts_search.py`
 
 ---
 
