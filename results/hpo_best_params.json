@@ -1,8 +1,8 @@
 {
-  "learning_rate": 0.0014283900238277966,
+  "learning_rate": 0.0004224705251222325,
   "batch_size": 64,
   "optimizer": "adam",
-  "dropout": 0.08701823868786479,
+  "dropout": 0.0023177268680723987,
   "base_filters": 64,
   "num_layers": 4
 }
