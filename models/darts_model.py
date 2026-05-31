@@ -13,11 +13,11 @@ from torch import nn
 OPS_NAMES = ["conv3x3", "conv5x5", "skip_connect", "dil_conv_3x3", "sep_conv_3x3"]
 
 OPS_TO_GENOME: dict[str, dict[str, Any]] = {
-    "conv3x3":      {"kernel_size": 3, "pooling_type": "max", "skip": False},
-    "conv5x5":      {"kernel_size": 5, "pooling_type": "max", "skip": False},
-    "skip_connect": {"kernel_size": 3, "pooling_type": "max", "skip": True},
-    "dil_conv_3x3": {"kernel_size": 5, "pooling_type": "max", "skip": False},
-    "sep_conv_3x3": {"kernel_size": 3, "pooling_type": "max", "skip": False},
+    "conv3x3":      {"kernel_size": 3, "pooling_type": "max", "skip": False, "dilation": 1, "separable": False},
+    "conv5x5":      {"kernel_size": 5, "pooling_type": "max", "skip": False, "dilation": 1, "separable": False},
+    "skip_connect": {"kernel_size": 3, "pooling_type": "max", "skip": True,  "dilation": 1, "separable": False},
+    "dil_conv_3x3": {"kernel_size": 3, "pooling_type": "max", "skip": False, "dilation": 2, "separable": False},
+    "sep_conv_3x3": {"kernel_size": 3, "pooling_type": "max", "skip": False, "dilation": 1, "separable": True},
 }
 
 
@@ -173,11 +173,15 @@ def derive_architecture(model: DartsCNN, dropout: float) -> dict[str, Any]:
     kernel_sizes: list[int] = []
     pooling_types: list[str] = []
     skip_connections: list[bool] = []
+    dilations: list[int] = []
+    separable: list[bool] = []
     for op_name in selected_op_names:
         mapping = OPS_TO_GENOME[op_name]
         kernel_sizes.append(mapping["kernel_size"])
         pooling_types.append(mapping["pooling_type"])
         skip_connections.append(mapping["skip"])
+        dilations.append(mapping["dilation"])
+        separable.append(mapping["separable"])
 
     return {
         "num_layers": len(selected_op_names),
@@ -185,5 +189,7 @@ def derive_architecture(model: DartsCNN, dropout: float) -> dict[str, Any]:
         "kernel_sizes": kernel_sizes,
         "pooling_types": pooling_types,
         "skip_connections": skip_connections,
+        "dilations": dilations,
+        "separable": separable,
         "dropout": dropout,
     }

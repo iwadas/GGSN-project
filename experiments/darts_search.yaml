@@ -13,13 +13,13 @@ model:
 training:
   optimizer: adam
   learning_rate: 0.001
-  weight_decay: 0.0
+  weight_decay: 0.0005
   use_mixed_precision: true
   early_stopping_patience: 5
-  final_epochs: 25
+  final_epochs: 100
 
 search:
-  search_epochs: 15
+  search_epochs: 50
   network_lr: 0.001
   arch_lr: 0.003
   arch_weight_decay: 0.001

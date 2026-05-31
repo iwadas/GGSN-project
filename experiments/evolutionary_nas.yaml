@@ -13,16 +13,16 @@ model:
 training:
   optimizer: adam
   learning_rate: 0.001
-  weight_decay: 0.0
+  weight_decay: 0.0005
   use_mixed_precision: true
   early_stopping_patience: 3
-  final_epochs: 25
+  final_epochs: 100
 
 search:
-  population_size: 12
-  generations: 8
-  children_per_generation: 6
-  candidate_epochs: 2
+  population_size: 20
+  generations: 15
+  children_per_generation: 10
+  candidate_epochs: 5
   tournament_size: 4
   mutation_rate: 0.3
   crossover_rate: 0.2

@@ -9,7 +9,10 @@ from torch import nn
 
 
 class SearchConvBlock(nn.Module):
-    """Convolutional block with optional residual projection and pooling."""
+    """Convolutional block with optional skip connection and pooling.
+
+    Supports regular, dilated, and depthwise separable convolutions.
+    """
 
     def __init__(
         self,
@@ -19,17 +22,36 @@ class SearchConvBlock(nn.Module):
         pooling_type: str,
         use_skip: bool,
         dropout: float,
+        dilation: int = 1,
+        separable: bool = False,
     ) -> None:
         super().__init__()
-        padding = kernel_size // 2
+        padding = (kernel_size // 2) * dilation
         self.use_skip = use_skip
-        self.conv = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size=kernel_size,
-            padding=padding,
-            bias=False,
-        )
+        self.separable = separable
+
+        if separable:
+            self.conv = nn.Sequential(
+                nn.Conv2d(
+                    in_channels,
+                    in_channels,
+                    kernel_size=kernel_size,
+                    padding=padding,
+                    dilation=dilation,
+                    groups=in_channels,
+                    bias=False,
+                ),
+                nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
+            )
+        else:
+            self.conv = nn.Conv2d(
+                in_channels,
+                out_channels,
+                kernel_size=kernel_size,
+                padding=padding,
+                dilation=dilation,
+                bias=False,
+            )
         self.batch_norm = nn.BatchNorm2d(out_channels)
         self.activation = nn.ReLU(inplace=True)
         self.projection = (
@@ -49,7 +71,11 @@ class SearchConvBlock(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         residual = x
-        out = self.activation(self.batch_norm(self.conv(x)))
+        if self.separable:
+            out = self.conv(x)
+        else:
+            out = self.conv(x)
+        out = self.activation(self.batch_norm(out))
         if self.use_skip:
             if self.projection is not None:
                 residual = self.projection(residual)
@@ -70,6 +96,8 @@ class SearchCNN(nn.Module):
         dropout: float,
         num_classes: int = 10,
         input_channels: int = 3,
+        dilations: Sequence[int] | None = None,
+        separable: Sequence[bool] | None = None,
     ) -> None:
         super().__init__()
         layer_count = len(filters)
@@ -85,13 +113,20 @@ class SearchCNN(nn.Module):
         if not 0.0 <= dropout < 1.0:
             raise ValueError("dropout must be in the range [0, 1).")
 
+        if dilations is None:
+            dilations = [1] * layer_count
+        if separable is None:
+            separable = [False] * layer_count
+
         blocks: list[nn.Module] = []
         in_channels = input_channels
-        for out_channels, kernel_size, pooling_type, use_skip in zip(
+        for out_channels, kernel_size, pooling_type, use_skip, dilation, is_separable in zip(
             filters,
             kernel_sizes,
             pooling_types,
             skip_connections,
+            dilations,
+            separable,
         ):
             blocks.append(
                 SearchConvBlock(
@@ -101,6 +136,8 @@ class SearchCNN(nn.Module):
                     pooling_type=pooling_type,
                     use_skip=use_skip,
                     dropout=dropout,
+                    dilation=dilation,
+                    separable=is_separable,
                 )
             )
             in_channels = out_channels
@@ -122,6 +159,7 @@ def build_search_cnn_from_genome(
     num_classes: int = 10,
 ) -> SearchCNN:
     """Build a search CNN from a serializable genome dictionary."""
+    layer_count = len(genome["filters"])
     return SearchCNN(
         filters=list(genome["filters"]),
         kernel_sizes=list(genome["kernel_sizes"]),
@@ -129,4 +167,6 @@ def build_search_cnn_from_genome(
         skip_connections=list(genome["skip_connections"]),
         dropout=float(genome["dropout"]),
         num_classes=num_classes,
+        dilations=list(genome.get("dilations", [1] * layer_count)),
+        separable=list(genome.get("separable", [False] * layer_count)),
     )

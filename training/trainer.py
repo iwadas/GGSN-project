@@ -66,6 +66,7 @@ def train_one_epoch(
     device: torch.device | str,
     scaler: torch.amp.GradScaler | None = None,
     use_mixed_precision: bool = False,
+    max_grad_norm: float | None = 5.0,
 ) -> EvaluationResult:
     """Run one training epoch and return average loss and accuracy."""
     model.train()
@@ -88,10 +89,15 @@ def train_one_epoch(
 
         if scaler is not None and scaler.is_enabled():
             scaler.scale(loss).backward()
+            if max_grad_norm is not None:
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             scaler.step(optimizer)
             scaler.update()
         else:
             loss.backward()
+            if max_grad_norm is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             optimizer.step()
 
         batch_size = targets.size(0)

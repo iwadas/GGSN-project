@@ -12,6 +12,7 @@ from typing import Any
 import pandas as pd
 import torch
 from torch import nn
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 from data.dataloader import get_cifar10_dataloaders
 from evaluation.latency import measure_inference_latency
@@ -232,6 +233,10 @@ def train_best_architecture(
         learning_rate=float(training_config["learning_rate"]),
         weight_decay=float(training_config["weight_decay"]),
     )
+    scheduler = CosineAnnealingLR(
+        optimizer,
+        T_max=int(training_config["final_epochs"]),
+    )
     criterion = nn.CrossEntropyLoss()
 
     training_result = fit(
@@ -240,6 +245,7 @@ def train_best_architecture(
         validation_loader=validation_loader,
         criterion=criterion,
         optimizer=optimizer,
+        scheduler=scheduler,
         epochs=int(training_config["final_epochs"]),
         use_mixed_precision=bool(training_config["use_mixed_precision"]),
         early_stopping_patience=int(training_config["early_stopping_patience"]),
@@ -345,12 +351,6 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
                 int(config["search"]["tournament_size"]),
                 rng,
             )
-            child_genome = mutate_genome(
-                parent["genome"],
-                search_space=config["search_space"],
-                rng=rng,
-                mutation_rate=float(config["search"]["mutation_rate"]),
-            )
 
             if crossover_rate > 0.0 and rng.random() < crossover_rate and len(active_population) >= 2:
                 parent_b = tournament_selection(
@@ -364,6 +364,16 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
                     search_space=config["search_space"],
                     rng=rng,
                 )
+            else:
+                child_genome = parent["genome"]
+
+            child_genome = mutate_genome(
+                child_genome,
+                search_space=config["search_space"],
+                rng=rng,
+                mutation_rate=float(config["search"]["mutation_rate"]),
+            )
+
             evaluated = evaluate_genome(
                 genome=child_genome,
                 individual_id=individual_id,
@@ -384,11 +394,13 @@ def run_evolutionary_search(config: dict[str, Any]) -> dict[str, Any]:
             active_population.append(active_individual)
             generation_records.append(record)
 
-            oldest = min(active_population, key=lambda individual: int(individual["age"]))
-            active_population.remove(oldest)
-
             if best_individual is None or evaluated.fitness > best_individual["fitness"]:
                 best_individual = active_individual
+
+        population_size = int(config["search"]["population_size"])
+        if len(active_population) > population_size:
+            active_population.sort(key=lambda x: x["fitness"], reverse=True)
+            active_population = active_population[:population_size]
 
         append_records_csv(records_path, generation_records)
 

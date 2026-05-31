@@ -14,6 +14,7 @@ from torch import nn
 from data.dataloader import get_cifar10_dataloaders
 from evaluation.metrics import count_parameters, evaluate, measure_inference_latency
 from models.baseline_cnn import build_baseline_cnn
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from training.trainer import fit, get_default_device, train_one_epoch
 from utils.plotting import plot_training_curves
 from utils.reproducibility import set_seed
@@ -29,8 +30,9 @@ def suggest_hyperparameters(
     learning_rate_config = search_config["learning_rate"]
     dropout_config = search_config["dropout"]
     num_layers_config = search_config["num_layers"]
+    weight_decay_config = search_config.get("weight_decay", {})
 
-    return {
+    params = {
         "learning_rate": trial.suggest_float(
             "learning_rate",
             float(learning_rate_config["low"]),
@@ -60,6 +62,14 @@ def suggest_hyperparameters(
             int(num_layers_config["high"]),
         ),
     }
+    if weight_decay_config:
+        params["weight_decay"] = trial.suggest_float(
+            "weight_decay",
+            float(weight_decay_config["low"]),
+            float(weight_decay_config["high"]),
+            log=bool(weight_decay_config.get("log", False)),
+        )
+    return params
 
 
 def build_optimizer(
@@ -137,7 +147,7 @@ def create_objective(config: dict[str, Any]):
             model=model,
             optimizer_name=str(params["optimizer"]),
             learning_rate=float(params["learning_rate"]),
-            weight_decay=float(training_config["weight_decay"]),
+            weight_decay=float(params.get("weight_decay", training_config["weight_decay"])),
         )
         criterion = nn.CrossEntropyLoss()
         scaler = torch.amp.GradScaler(
@@ -256,7 +266,11 @@ def train_best_model(config: dict[str, Any], best_params: dict[str, Any]) -> dic
         model=model,
         optimizer_name=str(best_params["optimizer"]),
         learning_rate=float(best_params["learning_rate"]),
-        weight_decay=float(training_config["weight_decay"]),
+        weight_decay=float(best_params.get("weight_decay", training_config["weight_decay"])),
+    )
+    scheduler = CosineAnnealingLR(
+        optimizer,
+        T_max=int(training_config["final_epochs"]),
     )
     criterion = nn.CrossEntropyLoss()
 
@@ -266,6 +280,7 @@ def train_best_model(config: dict[str, Any], best_params: dict[str, Any]) -> dic
         validation_loader=validation_loader,
         criterion=criterion,
         optimizer=optimizer,
+        scheduler=scheduler,
         epochs=int(training_config["final_epochs"]),
         use_mixed_precision=bool(training_config["use_mixed_precision"]),
         early_stopping_patience=int(training_config["early_stopping_patience"]),

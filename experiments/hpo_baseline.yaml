@@ -12,16 +12,16 @@ model:
   num_classes: 10
 
 training:
-  trial_epochs: 5
-  final_epochs: 20
-  weight_decay: 0.0
+  trial_epochs: 10
+  final_epochs: 50
+  weight_decay: 0.0005
   use_mixed_precision: true
   early_stopping_patience: 3
 
 search:
   study_name: baseline_cnn_hpo
   direction: maximize
-  n_trials: 30
+  n_trials: 50
   timeout_seconds: null
   pruner:
     type: median
@@ -39,10 +39,14 @@ search:
     low: 0.0
     high: 0.5
   base_filters:
-    choices: [16, 32, 64]
+    choices: [16, 32, 64, 128]
   num_layers:
     low: 2
     high: 4
+  weight_decay:
+    low: 0.00001
+    high: 0.001
+    log: true
 
 outputs:
   baseline_summary_path: results/baseline_summary.json

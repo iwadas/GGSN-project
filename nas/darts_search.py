@@ -18,6 +18,7 @@ from evaluation.metrics import count_parameters, evaluate
 from hpo.optuna_search import build_optimizer
 from models.darts_model import DartsCNN, OPS_NAMES, derive_architecture
 from models.search_cnn import build_search_cnn_from_genome
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from training.trainer import fit, get_default_device
 from utils.plotting import plot_training_curves
 from utils.reproducibility import set_seed
@@ -57,6 +58,7 @@ def search_architecture(
     arch_entropy_weight = float(search_config.get("arch_entropy_weight", 0.0))
     scaler_enabled = bool(training_config["use_mixed_precision"]) and device.type == "cuda"
     scaler = torch.amp.GradScaler(device="cuda", enabled=scaler_enabled)
+    arch_scaler = torch.amp.GradScaler(device="cuda", enabled=scaler_enabled)
 
     alpha_log: list[dict[str, Any]] = []
 
@@ -102,10 +104,10 @@ def search_architecture(
                     )
                     loss = loss + arch_entropy_weight * entropy
 
-            if scaler.is_enabled():
-                scaler.scale(loss).backward()
-                scaler.step(arch_optimizer)
-                scaler.update()
+            if arch_scaler.is_enabled():
+                arch_scaler.scale(loss).backward()
+                arch_scaler.step(arch_optimizer)
+                arch_scaler.update()
             else:
                 loss.backward()
                 arch_optimizer.step()
@@ -201,6 +203,10 @@ def train_derived_architecture(
         learning_rate=float(training_config["learning_rate"]),
         weight_decay=float(training_config["weight_decay"]),
     )
+    scheduler = CosineAnnealingLR(
+        optimizer,
+        T_max=int(training_config["final_epochs"]),
+    )
     criterion = nn.CrossEntropyLoss()
 
     training_result = fit(
@@ -209,6 +215,7 @@ def train_derived_architecture(
         validation_loader=validation_loader,
         criterion=criterion,
         optimizer=optimizer,
+        scheduler=scheduler,
         epochs=int(training_config["final_epochs"]),
         use_mixed_precision=bool(training_config["use_mixed_precision"]),
         early_stopping_patience=int(training_config["early_stopping_patience"]),

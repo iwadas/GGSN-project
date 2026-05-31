@@ -47,6 +47,8 @@ def random_genome(search_space: dict[str, Any], rng: random.Random) -> Genome:
             bool(rng.choice(search_space["skip_connections"]["choices"]))
             for _ in range(num_layers)
         ],
+        "dilations": [1] * num_layers,
+        "separable": [False] * num_layers,
         "dropout": rng.uniform(
             float(search_space["dropout"]["low"]),
             float(search_space["dropout"]["high"]),
@@ -76,12 +78,22 @@ def normalize_genome_layers(
             values.append(rng.choice(choices))
         normalized[field] = values[:target_layers]
 
+    for field, default in [("dilations", 1), ("separable", False)]:
+        if field not in normalized:
+            normalized[field] = [default] * target_layers
+        values = list(normalized[field])
+        while len(values) < target_layers:
+            values.append(default)
+        normalized[field] = values[:target_layers]
+
     normalized["filters"] = [int(value) for value in normalized["filters"]]
     normalized["kernel_sizes"] = [int(value) for value in normalized["kernel_sizes"]]
     normalized["pooling_types"] = [str(value) for value in normalized["pooling_types"]]
     normalized["skip_connections"] = [
         bool(value) for value in normalized["skip_connections"]
     ]
+    normalized["dilations"] = [int(value) for value in normalized["dilations"]]
+    normalized["separable"] = [bool(value) for value in normalized["separable"]]
     normalized["dropout"] = float(normalized["dropout"])
     return normalized
 
@@ -124,10 +136,6 @@ def mutate_genome(
             float(search_space["dropout"]["high"]),
         )
 
-    mutated["filters"] = _generate_monotonic_filters(
-        search_space, int(mutated["num_layers"]), rng
-    )
-
     return normalize_genome_layers(mutated, search_space, rng)
 
 
@@ -150,7 +158,7 @@ def crossover_genomes(
 
     crossover_point = rng.randint(1, shorter_layers - 1)
 
-    layer_fields = ["filters", "kernel_sizes", "pooling_types", "skip_connections"]
+    layer_fields = ["filters", "kernel_sizes", "pooling_types", "skip_connections", "dilations", "separable"]
     for field in layer_fields:
         child[field][:crossover_point] = copy.deepcopy(shorter[field][:crossover_point])
 
