@@ -8,464 +8,280 @@ Build a research-oriented framework for:
 - Hardware-Aware Optimization
 - DARTS-inspired Differentiable Search
 
-The project should optimize:
-- Accuracy
-- Model size
-- Inference latency
-
-using CNN architectures trained on the CIFAR-10 dataset.
+optimizing **Accuracy**, **Model size**, and **Inference latency** on CIFAR-10.
 
 ---
 
-# PROJECT CHECKLIST
-- [X] Stage 1 — Repository & Environment Setup
-- [X] Stage 2 — CIFAR-10 Dataset Pipeline
-- [X] Stage 3 — Manual CNN Baseline
-- [X] Stage 4 — Training Pipeline
-- [X] Stage 5 — Hyperparameter Optimization (HPO)
-- [X] Stage 6 — Evolutionary NAS
-- [X] Stage 7 — Hardware-Aware Optimization
-- [X] Stage 8 — Pareto Optimization
-- [ ] Stage 9 — DARTS-Inspired Differentiable Search
-- [ ] Stage 10 — Experiment System
-- [ ] Stage 11 — Logging & Results
-- [ ] Stage 12 — Visualization & Analysis
-- [ ] Stage 13 — Auto-Keras Comparison (Optional)
-- [ ] Stage 14 — Final Report
+# Phase 1 — Dataset, Baseline CNN & Training Pipeline
 
----
-
-# Stage 1 — Repository & Environment Setup
-
-## Repository Structure
-
-Create the following structure:
-
-```text
-project/
-│
-├── data/
-├── models/
-├── nas/
-├── hpo/
-├── training/
-├── evaluation/
-├── utils/
-├── experiments/
-├── notebooks/
-├── plots/
-├── reports/
-└── results/
-```
-
-## Tasks
-
-- [X] Initialize Git repository
-- [X] Create project folder structure
-- [X] Add `__init__.py` files to all Python modules
-- [X] Configure Google Colab environment
-- [X] Configure GPU runtime
-- [X] Install dependencies
-- [X] Create `requirements.txt`
-
-## Required Libraries
-
-- [X] PyTorch
-- [X] Torchvision
-- [X] Optuna
-- [X] NumPy
-- [X] Pandas
-- [X] Matplotlib
-- [X] PyYAML
-- [X] tqdm
-
----
-
-# Stage 2 — CIFAR-10 Dataset Pipeline
-
-## Tasks
-
-- [X] Download CIFAR-10 dataset
-- [X] Create train/validation/test splits
-- [X] Add normalization
-- [X] Add data augmentation:
-  - [X] RandomCrop
-  - [X] RandomHorizontalFlip
-  - [X] Normalize
+**Status:** ✅ Done
 
 ## Deliverables
+- [x] `data/dataloader.py` — CIFAR-10 download, train/val/test split
+- [x] `data/transforms.py` — Normalizacja, RandomCrop, RandomHorizontalFlip, Cutout
+- [x] `models/baseline_cnn.py` — Konfigurowalne CNN (layers, filtry, dropout, kernel sizes)
+- [x] `training/trainer.py` — Trening, walidacja, early stopping, checkpointing, AMP
+- [x] `evaluation/metrics.py` — Accuracy, loss, parameter count
+- [x] `scripts/run_baseline.py` — Skrypt uruchomieniowy
+- [x] `experiments/baseline_cnn.yaml` — Konfiguracja baseline'a
+- [x] `notebooks/baseline_cnn_colab.ipynb` — Notebook Colab
 
-- [X] `data/dataloader.py`
-- [X] `data/transforms.py`
+## Wyniki
+- Baseline: ~68% test accuracy, ~94K parametrów
+- Krzywe uczenia: `plots/baseline_training_curves.png`
+- Log: `results/baseline_training_log.csv`, `results/baseline_summary.json`
 
 ---
 
-# Stage 3 — Manual CNN Baseline
+# Phase 2 — Hyperparameter Optimization (Optuna)
 
-## Goal
-
-Build a manually designed CNN architecture as the baseline model.
-
-## Tasks
-
-- [X] Implement baseline CNN model
-- [X] Add configurable:
-  - [X] Number of layers
-  - [X] Filters
-  - [X] Dropout
-  - [X] Kernel sizes
-
-## Metrics
-
-Measure:
-- [X] Accuracy
-- [X] Loss
-- [X] Parameter count
-- [X] Training time
-- [X] Inference latency
+**Status:** ✅ Done
 
 ## Deliverables
+- [x] `hpo/optuna_search.py` — Integracja Optuna, objective function, MedianPruner
+- [x] Search space: learning rate, batch size, optimizer, dropout, filtry, layers, weight decay
+- [x] Zapis najlepszych hiperparametrów i porównanie z baseline
+- [x] `scripts/run_hpo.py`
+- [x] `experiments/hpo_baseline.yaml`
+- [x] `notebooks/hpo_baseline_colab.ipynb`
 
-- [X] `models/baseline_cnn.py`
-- [X] `training/trainer.py`
-- [X] `evaluation/metrics.py`
-
----
-
-# Stage 4 — Training Pipeline
-
-## Tasks
-
-- [X] Implement generic training loop
-- [X] Implement validation loop
-- [X] Add early stopping
-- [X] Add checkpoint saving
-- [X] Add model loading
-- [X] Add experiment logging
-
-## Features
-
-- [X] GPU support
-- [X] Mixed precision training
-- [X] Progress bars
-- [X] TensorBoard or CSV logging
+## Wyniki
+- HPO best: ~84% test accuracy, ~1.56M parametrów (+16.58 pp nad baseline)
+- Triale: `results/hpo_trials.csv`
+- Best params: `results/hpo_best_params.json`
+- Krzywe: `plots/hpo_best_training_curves.png`
 
 ---
 
-# Stage 5 — Hyperparameter Optimization (HPO)
+# Phase 3 — Evolutionary NAS
 
-## Goal
-
-Automate tuning of CNN hyperparameters using Optuna.
-
-## Search Space
-
-Optimize:
-- [X] Learning rate
-- [X] Batch size
-- [X] Optimizer type
-- [X] Dropout
-- [X] Number of filters
-- [X] Number of layers
-
-## Tasks
-
-- [X] Integrate Optuna
-- [X] Create objective function
-- [X] Add pruning for weak trials
-- [X] Save best hyperparameters
-- [X] Compare HPO vs baseline
+**Status:** ✅ Done
 
 ## Deliverables
+- [x] `nas/mutation.py` — Random genome, mutation (rate, grow/shrink), crossover
+- [x] `nas/selection.py` — Elita, tournament selection
+- [x] `nas/evolutionary_search.py` — Pętla ewolucyjna (populacja → selekcja → mutacja → aging)
+- [x] `nas/fitness.py` — Accuracy fitness + hardware-aware fitness
+- [x] `models/search_cnn.py` — CNN builder z genomu (skip connections, separable conv, dilation)
+- [x] `scripts/run_evolutionary_nas.py`
+- [x] `experiments/evolutionary_nas.yaml`
+- [x] `notebooks/evolutionary_nas_colab.ipynb`
 
-- [X] `hpo/optuna_search.py`
-- [X] HPO experiment notebook
+## Wyniki
+- Evolutionary best: ~84% test accuracy, ~710K parametrów
+- Populacja: `results/evolutionary_population.csv`
+- Pareto frontier: `results/evolutionary_pareto_frontier.csv`
+- Wykresy: progres ewolucji, Pareto frontier, Accuracy vs Latency/Params
 
 ---
 
-# Stage 6 — Evolutionary NAS
+# Phase 4 — Hardware-Aware & Pareto Optimization
 
-## Goal
-
-Implement an evolutionary algorithm for CNN architecture search.
-
-## Search Space
-
-Architecture parameters:
-- [X] Number of convolutional layers
-- [X] Filter sizes
-- [X] Kernel sizes
-- [X] Pooling type
-- [X] Skip connections
-- [X] Dropout
-
-## Evolutionary Components
-
-Implement:
-- [X] Population initialization
-- [X] Mutation
-- [X] Selection
-- [ ] Crossover (optional)
-- [X] Aging / regularized evolution
-
-## Tasks
-
-- [X] Create architecture genome representation
-- [X] Generate random architectures
-- [X] Train candidate models
-- [X] Evaluate candidate fitness
-- [X] Evolve population across generations
+**Status:** ✅ Done
 
 ## Deliverables
-
-- [X] `nas/evolutionary_search.py`
-- [X] `nas/mutation.py`
-- [X] `nas/selection.py`
+- [x] `evaluation/latency.py` — Pomiar inferencji (warmup, CUDA sync)
+- [x] `evaluation/pareto.py` — Pareto frontier + wykresy (Accuracy vs Latency, Accuracy vs Params, Pareto Frontier)
+- [x] `nas/fitness.py` — Fitness = Accuracy - α·Params - β·Latency
+- [x] Wykresy: `plots/evolutionary_accuracy_vs_latency.png`, `plots/evolutionary_accuracy_vs_parameters.png`, `plots/evolutionary_pareto_frontier.png`
 
 ---
 
-# Stage 7 — Hardware-Aware Optimization
+# Phase 5 — DARTS-Inspired Differentiable Search
 
-## Goal
-
-Optimize architectures using multiple objectives:
-- Accuracy
-- Latency
-- Parameter count
-
-## Tasks
-
-- [X] Measure inference latency
-- [X] Measure parameter count
-- [X] Add latency penalty to fitness
-- [X] Add parameter penalty to fitness
-
-## Fitness Function
-
-```math
-Fitness = Accuracy - α * Params - β * Latency
-```
+**Status:** ✅ Done
 
 ## Deliverables
+- [x] `models/darts_model.py` — MixedOp z learnable alpha, softmax-weightowane operacje
+- [x] Candidate operations: Conv3x3, Conv5x5, Skip connection, MaxPool, AvgPool
+- [x] `nas/darts_search.py` — Bi-level optimization, temperature annealing, entropy regularization
+- [x] Derive discrete architecture z wytrenowanych alpha
+- [x] Porównanie z Evolutionary NAS
+- [x] `scripts/run_darts_search.py`
+- [x] `experiments/darts_search.yaml`
+- [x] `notebooks/darts_search_colab.ipynb`
 
-- [X] `evaluation/latency.py`
-- [X] `nas/fitness.py`
-
----
-
-# Stage 8 — Pareto Optimization
-
-## Goal
-
-Analyze trade-offs between:
-- Accuracy
-- Speed
-- Model complexity
-
-## Tasks
-
-- [X] Compute Pareto frontier
-- [X] Visualize Pareto-optimal models
-- [X] Compare efficient architectures
-
-## Visualizations
-
-- [X] Accuracy vs Latency
-- [X] Accuracy vs Parameters
-- [X] Pareto Frontier
+## Wyniki
+- DARTS best: ~79% test accuracy, ~260K parametrów, ~0.53ms latency
+- Alpha log: `results/darts_alpha_log.csv`
+- Derived genome: `results/darts_derived_genome.json`
+- Wykresy: alpha convergence, training curves
 
 ---
 
-# Stage 9 — DARTS-Inspired Differentiable Search
+# Phase 6 — Porównanie metod i raport końcowy
 
-## Goal
+**Status:** ⬜ Do zrobienia
 
-Implement simplified differentiable architecture search.
+## Porównanie metod (1 notebook/scenariusz)
+- [ ] Jeden wspólny wykres Accuracy vs Params dla wszystkich 4 metod
+- [ ] Jeden wspólny wykres Accuracy vs Latency dla wszystkich 4 metod
+- [ ] Tabela porównawcza (accuracy, params, latency, FLOPS)
+- [ ] Która metoda wygrywa w której kategorii?
 
-## Tasks
-
-- [X] Add operator weighting
-- [X] Implement softmax-weighted operations
-- [X] Train architecture parameters with gradient descent
-- [X] Compare with evolutionary NAS
-
-## Candidate Operations
-
-- [X] Conv3x3
-- [X] Conv5x5
-- [X] Skip connection
-- [X] MaxPool
-- [X] AvgPool
-
-## Deliverables
-
-- [X] `models/darts_model.py`
-- [X] `nas/darts_search.py`
-- [X] `experiments/darts_search.yaml`
-- [X] `scripts/run_darts_search.py`
-
----
-
-# Stage 10 — Experiment System
-
-## Goal
-
-Create reusable experiment configuration system.
-
-## Tasks
-
-- [X] Add YAML experiment configs
-- [X] Create experiment runner
-- [X] Save experiment outputs automatically
-
-## Example Config
-
-```yaml
-model:
-  layers: 4
-  filters: [32, 64, 128]
-
-training:
-  epochs: 10
-  batch_size: 64
-
-search:
-  population_size: 20
-```
-
-## Deliverables
-
-- [ ] `run_experiment.py`
-- [X] `experiments/*.yaml`
-
----
-
-# Stage 11 — Logging & Results
-
-## Tasks
-
-- [ ] Save metrics to CSV
-- [ ] Save architectures
-- [ ] Save plots
-- [ ] Save checkpoints
-
-## Result Format
-
-```csv
-architecture,accuracy,params,latency
-cnn_v1,0.89,120000,5.2
-cnn_v2,0.92,800000,14.7
-```
-
----
-
-# Stage 12 — Visualization & Analysis
-
-## Tasks
-
-- [ ] Plot training curves
-- [ ] Plot HPO optimization history
-- [ ] Plot NAS evolution progress
-- [ ] Plot Pareto frontier
-- [ ] Compare all approaches
-
-## Final Analysis
-
-Answer:
-- Which method achieved the best accuracy?
-- Which architecture was most efficient?
-- How important is hardware-aware optimization?
-- Is NAS worth the computational cost?
-
----
-
-# Stage 13 — Auto-Keras Comparison (Optional)
-
-## Goal
-
-Compare custom NAS with Auto-Keras.
-
-## Tasks
-
-- [ ] Install Auto-Keras
-- [ ] Run AutoML experiment
-- [ ] Compare generated architectures
-- [ ] Compare training efficiency
-
----
-
-# Stage 14 — Final Report
-
-## Report Sections
-
-- [ ] Introduction
-- [ ] Literature Review
-- [ ] Methodology
-- [ ] Experimental Setup
-- [ ] Results
-- [ ] Discussion
-- [ ] Conclusion
-
-## Include
-
-- [ ] Tables
-- [ ] Plots
-- [ ] Pareto analysis
-- [ ] Architecture comparisons
-- [ ] Limitations
+## Final Report (`reports/`)
+- [ ] Wstęp i cel projektu
+- [ ] Opis metod (Baseline, HPO, Evolutionary NAS, DARTS)
+- [ ] Eksperymenty i wyniki
+- [ ] Dyskusja (kompromisy, ograniczenia, wnioski)
 - [ ] Future work
 
----
-
-# Recommended Development Order
-
-## Phase 1
-- Dataset pipeline
-- Baseline CNN
-- Training system
-
-## Phase 2
-- HPO with Optuna
-
-## Phase 3
-- Evolutionary NAS
-
-## Phase 4
-- Hardware-aware optimization
-
-## Phase 5
-- Pareto analysis
-
-## Phase 6
-- DARTS-inspired search
-
-## Phase 7
-- Final report and visualizations
+## Opcjonalnie — Auto-Keras Comparison
+- [ ] Instalacja Auto-Keras
+- [ ] Uruchomienie AutoML
+- [ ] Porównanie architektur i wydajności
 
 ---
 
-# Most Important Engineering Rules
+# Phase 7 — Ensemble metod
 
-## DO NOT:
-- Train every model for many epochs during search
-- Use huge search spaces initially
-- Put all logic inside notebooks
+**Status:** ⬜ Do zrobienia
 
-## ALWAYS:
-- Log everything
-- Save experiment results
-- Use early stopping
-- Keep experiments reproducible
-- Separate code from notebooks
+**Wymaganie wstępne:** Checkpointy wag modeli (`checkpoints/*.pt`) nie istnieją lokalnie — są w `.gitignore` i były tylko w runtime Colaba. Przed ensemble trzeba je wygenerować:
+
+| Checkpoint | Jak zdobyć | Szac. czas na T4 |
+|---|---|---|
+| `checkpoints/baseline_cnn.pt` | `uv run python scripts/run_baseline.py` | ~5 min |
+| `checkpoints/hpo_best_baseline_cnn.pt` | `uv run python scripts/run_hpo.py` | ~15 min (50 epok final retrain) |
+| `checkpoints/evolutionary_best_cnn.pt` | `uv run python scripts/run_evolutionary_nas.py` | ~10 min (25 epok) |
+| `checkpoints/darts_best_cnn.pt` | `uv run python scripts/run_darts_search.py` | ~10 min (25 epok) |
+
+**Razem: ~40 min na GPU (Colab T4).** Skrypty zrobią final retrain najlepszej architektury i zapiszą wagę do `checkpoints/`.
 
 ---
 
-# Final Expected Outcome
+## Cel
 
-A complete research-oriented AutoML framework capable of:
-- Hyperparameter optimization
-- Evolutionary NAS
-- Hardware-aware architecture search
-- Pareto-efficient model discovery
+Załadować wszystkie 4 wytrenowane modele i połączyć ich predykcje na testsecie — pokazać, że ensemble bije każdą metodę solo.
 
-with full experimental analysis on CIFAR-10.
+## Zadania
+
+- [ ] **Przygotowanie — retrain 4 modeli** (jeśli checkpointy nie istnieją):
+  - Kolejno odpalić skrypty z Phase 1-5 na GPU
+  - Zweryfikować czy `checkpoints/` zawiera 4 pliki `.pt`
+
+- [ ] **Skrypt `scripts/run_ensemble.py`** który:
+  - Ładuje 4 checkpointy z `checkpoints/` i mapuje do odpowiednich klas:
+    - `baseline_cnn.pt` → `BaselineCNN` (models/baseline_cnn.py)
+    - `hpo_best_baseline_cnn.pt` → `BaselineCNN` (ten sam model, inne hiperparametry)
+    - `evolutionary_best_cnn.pt` → `SearchCNN` (models/search_cnn.py — genom z `results/evolutionary_best_genome.json`)
+    - `darts_best_cnn.pt` → `SearchCNN` (models/search_cnn.py — genom z `results/darts_derived_genome.json`)
+  - Uruchamia inferencję na całym testsecie dla każdego modelu osobno
+  - Implementuje 2 warianty ensemble:
+    - **Soft voting** — `torch.stack([logits_1, logits_2, ...]).mean(0)` → argmax
+    - **Hard voting** — większościowy wybór klasy po argmax każdego modelu
+  - Liczy accuracy: każda metoda solo + ensemble soft + ensemble hard
+  - Zapisuje wyniki do `results/ensemble_summary.json`
+
+- [ ] **Wykres `plots/ensemble_comparison.png`**:
+  - Słupki accuracy: baseline, HPO, evo, DARTS, ensemble (soft), ensemble (hard)
+  - Linia lub adnotacja pokazująca improvement nad najlepszą solo metodą
+
+- [ ] **Opcjonalnie: subset ensemble** — ensemble bez baseline'a, top-3, tylko top-2 itp.
+
+## Spodziewany wynik
+
+- Ensemble soft voting: ~85-86% test accuracy (vs 84.39% najlepszej solo)
+- Hard voting: porównywalny lub nieco niższy od soft
+- Nawet sam baseline obniża ensemble — warto pokazać wariant bez niego
+
+## Pliki wynikowe
+
+| Plik | Opis |
+|---|---|
+| `results/ensemble_summary.json` | Accuracy każdej metody + ensemble (soft/hard) + subset warianty |
+| `plots/ensemble_comparison.png` | Wykres słupkowy porównawczy |
+| `scripts/run_ensemble.py` | Skrypt ensemble |
+
+---
+
+# Phase 8 — Knowledge Distillation
+
+**Status:** ⬜ Do zrobienia
+
+**Wymaganie wstępne:** To samo co w Phase 7 — potrzebny checkpoint HPO modelu (`checkpoints/hpo_best_baseline_cnn.pt`) jako teacher oraz DARTS-derived genome (`results/darts_derived_genome.json`) do zbudowania studenta.
+
+---
+
+## Cel
+
+Skompresować wiedzę z dużego modelu HPO (1.56M params, **teacher**, ~84% accuracy) do małego modelu DARTS-style (260K params, **student**) używając distillation loss. Pokazać, że student po dystylacji jest bliżej nauczyciela niż oryginalny DARTS.
+
+## Koncepcja
+
+Zamiast trenować studenta tylko z etykietami (hard targets), dokładamy **soft loss** — student uczy się naśladować rozkład prawdopodobieństw nauczyciela:
+
+```
+total_loss = α · KL_div(softmax(student/T), softmax(teacher/T)) + (1-α) · CrossEntropy(student, labels)
+```
+
+gdzie:
+- `T` — temperatura (im wyższa, tym bardziej miękki rozkład)
+- `α` — waga distillation loss (0.7 = głównie naśladuje nauczyciela)
+- Student dostaje też prawdziwe etykiety (hard loss) — nie może uczyć się błędów nauczyciela
+
+## Zadania
+
+- [ ] **Implementacja w `training/distillation.py`**:
+  - `distillation_loss(student_logits, teacher_logits, labels, temperature, alpha)`:
+    - `soft_loss = KL_div(F.log_softmax(student/T), F.softmax(teacher/T)) * T²`
+    - `hard_loss = CrossEntropy(student_logits, labels)`
+    - `total_loss = alpha * soft_loss + (1-alpha) * hard_loss`
+  - Funkcja pomocnicza do trenowania studenta z distillation
+
+- [ ] **Skrypt `scripts/run_distillation.py`** który:
+  - Ładuje **teacher**: `BaselineCNN` z `checkpoints/hpo_best_baseline_cnn.pt`
+  - Buduje **student**: `SearchCNN` z genomu `results/darts_derived_genome.json`
+  - Zamraża nauczyciela (`model.eval()`, `torch.no_grad()`)
+  - Trenuje studenta z distillation loss przez 25-50 epok
+  - Eksperymentuje z hiperparametrami distillation:
+    - **Temperatura**: T = 1, 2, 4, 8
+    - **Alpha**: α = 0.3, 0.5, 0.7
+    - Zapisuje wyniki dla każdej kombinacji
+
+- [ ] **Ewaluacja i porównanie**:
+  - Accuracy studenta (distilled) vs studenta (oryginalny DARTS)
+  - Accuracy studenta vs nauczyciela (HPO)
+  - Ile udało się odzyskać z luki accuracy: `(acc_distilled - acc_original_darts) / (acc_teacher - acc_original_darts) * 100%`
+  - Kompresja: 1.56M → 260K parametrów (~83% redukcji)
+
+- [ ] **Wykresy**:
+  - `plots/distillation_training_curves.png` — krzywe treningu studenta (loss, accuracy)
+  - `plots/distillation_comparison.png` — słupki: teacher vs student_original vs student_distilled (najlepszy T/α)
+  - `plots/distillation_temperature_sweep.png` — accuracy od temperatury (dla ustalonego α)
+
+## Spodziewany wynik
+
+| Model | Accuracy | Parametry |
+|---|---|---|
+| Teacher (HPO) | ~84.4% | 1.56M |
+| Student (oryginalny DARTS) | ~78.9% | 260K |
+| **Student distilled** | **~82-83%** | **260K** |
+| Recovery rate | ~50-70% luki | — |
+
+- Gain: ~3-4 pp nad oryginalnym DARTS
+- Tylko ~1-2 pp straty do nauczyciela przy 83% mniejszym modelu
+- Wyższa temperatura (T=4-8) powinna działać lepiej — bardziej miękki rozkład niesie więcej信息 o relacjach między klasami
+
+## Pliki wynikowe
+
+| Plik | Opis |
+|---|---|
+| `training/distillation.py` | Loss function + training helper |
+| `scripts/run_distillation.py` | Skrypt |
+| `results/distillation_summary.json` | Wyniki dla różnych T i α |
+| `results/distillation_training_log.csv` | Per-epoch log najlepszego wariantu |
+| `plots/distillation_training_curves.png` | Training curves |
+| `plots/distillation_comparison.png` | Accuracy comparison |
+| `plots/distillation_temperature_sweep.png` | Wpływ temperatury na accuracy |
+| `checkpoints/distilled_student.pt` | Student checkpoint (najlepszy wariant) |
+
+---
+
+# Uwagi / notatki
+
+- Logging i zapisywanie wyników (CSV, checkpointy, JSON) dzieje się automatycznie w każdej fazie — nie jest osobnym etapem.
+- Wizualizacje (training curves, Pareto, alpha convergence) są generowane per-notebook. Phase 6 to dopiero wspólne zestawienie.
+- **Checkpointy wag są w `.gitignore`** — trzeba je wygenerować lokalnie lub w Colab przed Phases 7-8. Skrypty z Phase 1-5 automatycznie tworzą checkpointy podczas final retrain.
+- Phase 7 (ensemble) wymaga tylko inference na testsecie — **nie wymaga GPU** poza wczytaniem modeli.
+- Phase 8 (distillation) wymaga trenowania studenta — **wskazany GPU** (szac. 15-20 min na T4 dla wszystkich wariantów T/α).
