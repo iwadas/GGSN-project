@@ -19,7 +19,7 @@ training:
   final_epochs: 50
 
 search:
-  search_epochs: 20
+  search_epochs: 25
   network_lr: 0.001
   arch_lr: 0.003
   arch_weight_decay: 0.001
