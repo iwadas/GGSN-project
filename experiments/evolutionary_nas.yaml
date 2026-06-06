@@ -2,7 +2,7 @@ seed: 42
 
 data:
   data_dir: data/raw
-  batch_size: 64
+  batch_size: 128
   validation_ratio: 0.1
   num_workers: 0
   download: true
@@ -15,14 +15,14 @@ training:
   learning_rate: 0.001
   weight_decay: 0.0005
   use_mixed_precision: true
-  early_stopping_patience: 3
-  final_epochs: 100
+  early_stopping_patience: 5
+  final_epochs: 50
 
 search:
-  population_size: 20
-  generations: 15
-  children_per_generation: 10
-  candidate_epochs: 5
+  population_size: 16
+  generations: 10
+  children_per_generation: 8
+  candidate_epochs: 3
   tournament_size: 4
   mutation_rate: 0.3
   crossover_rate: 0.2
