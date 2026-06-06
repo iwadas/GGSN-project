@@ -2,7 +2,7 @@ seed: 42
 
 data:
   data_dir: data/raw
-  batch_size: 64
+  batch_size: 128
   validation_ratio: 0.1
   num_workers: 0
   download: true
@@ -15,11 +15,11 @@ training:
   learning_rate: 0.001
   weight_decay: 0.0005
   use_mixed_precision: true
-  early_stopping_patience: 5
-  final_epochs: 100
+  early_stopping_patience: 7
+  final_epochs: 50
 
 search:
-  search_epochs: 50
+  search_epochs: 20
   network_lr: 0.001
   arch_lr: 0.003
   arch_weight_decay: 0.001

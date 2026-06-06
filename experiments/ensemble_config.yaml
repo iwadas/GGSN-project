@@ -1,0 +1,26 @@
+seed: 42
+
+data:
+  data_dir: data/raw
+  batch_size: 128
+  validation_ratio: 0.1
+  num_workers: 0
+  download: true
+
+models:
+  baseline:
+    checkpoint_path: checkpoints/baseline_cnn.pt
+    config_path: experiments/baseline_cnn.yaml
+  hpo:
+    checkpoint_path: checkpoints/hpo_best_baseline_cnn.pt
+    summary_path: results/hpo_summary.json
+  evolutionary:
+    checkpoint_path: checkpoints/evolutionary_best_cnn.pt
+    summary_path: results/evolutionary_summary.json
+  darts:
+    checkpoint_path: checkpoints/darts_best_cnn.pt
+    summary_path: results/darts_summary.json
+
+outputs:
+  summary_path: results/ensemble_summary.json
+  curves_path: plots/ensemble_comparison.png
