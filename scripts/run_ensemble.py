@@ -257,6 +257,17 @@ def run_ensemble(config: dict) -> dict:
         print(f"  Test accuracy: {acc*100:.2f}%")
         print(f"  Latency: {latency:.3f} ms")
 
+        preds = logits_batch.argmax(dim=1)
+        cm_path_key = Path(output_cfg.get(
+            "confusion_matrix_path",
+            "plots/ensemble_confusion_matrix.png",
+        ))
+        cm_individual_path = cm_path_key.parent / f"confusion_matrix_{key}.png"
+        plot_confusion_matrix(
+            targets_batch, preds, cm_individual_path,
+            title=f"Confusion Matrix — {label}",
+        )
+
         all_logits.append(logits_batch)
         if targets is None:
             targets = targets_batch
