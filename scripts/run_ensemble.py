@@ -42,6 +42,52 @@ MODEL_LABELS = {
     "darts": "DARTS",
 }
 
+CIFAR10_CLASSES = [
+    "airplane", "automobile", "bird", "cat", "deer",
+    "dog", "frog", "horse", "ship", "truck",
+]
+
+
+def plot_confusion_matrix(
+    targets: torch.Tensor,
+    predictions: torch.Tensor,
+    output_path: str | Path,
+    title: str = "Confusion Matrix",
+) -> np.ndarray:
+    cm = np.zeros((10, 10), dtype=np.int64)
+    for t, p in zip(targets.numpy(), predictions.numpy()):
+        cm[t, p] += 1
+
+    fig, ax = plt.subplots(figsize=(9, 8))
+    im = ax.imshow(cm, cmap="Blues", interpolation="nearest")
+    fig.colorbar(im, ax=ax, shrink=0.8)
+
+    ax.set_xticks(range(10))
+    ax.set_yticks(range(10))
+    ax.set_xticklabels(CIFAR10_CLASSES, rotation=45, ha="right", fontsize=8)
+    ax.set_yticklabels(CIFAR10_CLASSES, fontsize=8)
+    ax.set_xlabel("Predicted", fontsize=11)
+    ax.set_ylabel("True", fontsize=11)
+    ax.set_title(title, fontsize=13, fontweight="bold")
+
+    for i in range(10):
+        for j in range(10):
+            val = cm[i, j]
+            color = "white" if val > cm.max() * 0.6 else "black"
+            ax.text(j, i, str(val), ha="center", va="center", fontsize=7, color=color)
+
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+    print(f"  [PLOT] Saved to {output_path}")
+
+    per_class = np.diag(cm) / cm.sum(axis=1)
+    print("  Per-class accuracy:")
+    for idx, (name, acc) in enumerate(zip(CIFAR10_CLASSES, per_class)):
+        print(f"    {name:12s}  {acc*100:.1f}%")
+
+    return cm
+
 
 def collect_logits(
     model: nn.Module,
@@ -177,8 +223,10 @@ def run_ensemble(config: dict) -> dict:
     output_cfg = config.get("outputs", {})
     summary_path = Path(output_cfg.get("summary_path", "results/ensemble_summary.json"))
     curves_path = Path(output_cfg.get("curves_path", "plots/ensemble_comparison.png"))
+    cm_path = Path(output_cfg.get("confusion_matrix_path", "plots/ensemble_confusion_matrix.png"))
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     curves_path.parent.mkdir(parents=True, exist_ok=True)
+    cm_path.parent.mkdir(parents=True, exist_ok=True)
 
     all_logits: list[torch.Tensor] = []
     targets: torch.Tensor | None = None
@@ -232,10 +280,17 @@ def run_ensemble(config: dict) -> dict:
     soft_logits = soft_voting(all_logits)
     soft_acc = accuracy_from_logits(soft_logits, targets)
     print(f"  Soft voting (avg logits): {soft_acc*100:.2f}%")
+    soft_preds = soft_logits.argmax(dim=1)
 
     hard_preds = hard_voting(all_logits)
-    hard_acc = accuracy_from_logits(hard_preds, targets)
+    hard_acc = (hard_preds == targets).float().mean().item()
     print(f"  Hard voting (majority):   {hard_acc*100:.2f}%")
+
+    print()
+    cm = plot_confusion_matrix(
+        targets, soft_preds, cm_path,
+        title="Confusion Matrix — Ensemble (soft voting)",
+    )
 
     ensemble_results: dict[str, float] = {}
     for name, res in individual_results.items():
@@ -257,6 +312,8 @@ def run_ensemble(config: dict) -> dict:
         )[0],
         "ensemble_improvement_over_best": soft_acc
         - max(r["test_accuracy"] for r in individual_results.values()),
+        "confusion_matrix": cm.tolist(),
+        "class_names": CIFAR10_CLASSES,
     }
 
     summary_path.write_text(json.dumps(summary, indent=2))

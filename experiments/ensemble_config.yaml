@@ -24,3 +24,4 @@ models:
 outputs:
   summary_path: results/ensemble_summary.json
   curves_path: plots/ensemble_comparison.png
+  confusion_matrix_path: plots/ensemble_confusion_matrix.png
