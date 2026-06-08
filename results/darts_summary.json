@@ -1,23 +1,23 @@
 {
-  "search_epochs": 15,
+  "search_epochs": 25,
   "network_parameters": 469541,
   "arch_parameters": 15,
   "final_architecture_weights": {
-    "layer0_conv3x3": 0.21099792420864105,
-    "layer0_conv5x5": 0.19133493304252625,
-    "layer0_skip_connect": 0.19867436587810516,
-    "layer0_dil_conv_3x3": 0.21103426814079285,
-    "layer0_sep_conv_3x3": 0.1879584789276123,
-    "layer1_conv3x3": 0.21415583789348602,
-    "layer1_conv5x5": 0.22516503930091858,
-    "layer1_skip_connect": 0.1951705366373062,
-    "layer1_dil_conv_3x3": 0.16622960567474365,
-    "layer1_sep_conv_3x3": 0.19927899539470673,
-    "layer2_conv3x3": 0.08023592829704285,
-    "layer2_conv5x5": 0.44487106800079346,
-    "layer2_skip_connect": 0.05082181468605995,
-    "layer2_dil_conv_3x3": 0.3624759018421173,
-    "layer2_sep_conv_3x3": 0.061595335602760315
+    "layer0_conv3x3": 0.20390477776527405,
+    "layer0_conv5x5": 0.20075668394565582,
+    "layer0_skip_connect": 0.19338782131671906,
+    "layer0_dil_conv_3x3": 0.2022821009159088,
+    "layer0_sep_conv_3x3": 0.19966864585876465,
+    "layer1_conv3x3": 0.2173372358083725,
+    "layer1_conv5x5": 0.2209576517343521,
+    "layer1_skip_connect": 0.1989988386631012,
+    "layer1_dil_conv_3x3": 0.1578184813261032,
+    "layer1_sep_conv_3x3": 0.20488771796226501,
+    "layer2_conv3x3": 0.16815918684005737,
+    "layer2_conv5x5": 0.1604817658662796,
+    "layer2_skip_connect": 0.16754843294620514,
+    "layer2_dil_conv_3x3": 0.3362112045288086,
+    "layer2_sep_conv_3x3": 0.16759948432445526
   },
   "derived_genome": {
     "num_layers": 3,
@@ -27,9 +27,9 @@
       128
     ],
     "kernel_sizes": [
+      3,
       5,
-      5,
-      5
+      3
     ],
     "pooling_types": [
       "max",
@@ -37,6 +37,16 @@
       "max"
     ],
     "skip_connections": [
+      false,
+      false,
+      false
+    ],
+    "dilations": [
+      1,
+      1,
+      2
+    ],
+    "separable": [
       false,
       false,
       false
@@ -52,9 +62,9 @@
         128
       ],
       "kernel_sizes": [
+        3,
         5,
-        5,
-        5
+        3
       ],
       "pooling_types": [
         "max",
@@ -66,14 +76,24 @@
         false,
         false
       ],
+      "dilations": [
+        1,
+        1,
+        2
+      ],
+      "separable": [
+        false,
+        false,
+        false
+      ],
       "dropout": 0.0
     },
-    "final_epochs": 25,
-    "parameters": 260138,
-    "best_validation_accuracy": 0.7914,
-    "test_loss": 0.6266285964012146,
-    "test_accuracy": 0.7891,
-    "latency_ms": 0.5260230899989438,
+    "final_epochs": 50,
+    "parameters": 127530,
+    "best_validation_accuracy": 0.81,
+    "test_loss": 0.5614006394386292,
+    "test_accuracy": 0.806,
+    "latency_ms": 0.6995534599991515,
     "device": "cuda",
     "gpu": "Tesla T4",
     "checkpoint_path": "checkpoints/darts_best_cnn.pt",
@@ -81,12 +101,12 @@
   },
   "comparison_with_evolutionary_nas": {
     "evolutionary_nas_summary_path": "results/evolutionary_summary.json",
-    "darts_test_accuracy": 0.7891,
-    "evolutionary_test_accuracy": 0.7851,
-    "test_accuracy_delta": 0.0040000000000000036,
-    "darts_parameters": 260138,
-    "evolutionary_parameters": 88490,
-    "darts_latency_ms": 0.5260230899989438,
-    "evolutionary_latency_ms": 0.8237762999973105
+    "darts_test_accuracy": 0.806,
+    "evolutionary_test_accuracy": 0.8385,
+    "test_accuracy_delta": -0.03249999999999997,
+    "darts_parameters": 127530,
+    "evolutionary_parameters": 710282,
+    "darts_latency_ms": 0.6995534599991515,
+    "evolutionary_latency_ms": 0.6736159666616004
   }
 }

@@ -1,9 +1,9 @@
 {
   "num_layers": 4,
   "filters": [
+    64,
     128,
-    128,
-    128,
+    64,
     128
   ],
   "kernel_sizes": [
@@ -13,16 +13,28 @@
     3
   ],
   "pooling_types": [
+    "avg",
     "max",
     "max",
-    "max",
-    "avg"
+    "max"
   ],
   "skip_connections": [
+    true,
     false,
-    false,
-    false,
+    true,
     true
   ],
-  "dropout": 0.005075557219338556
+  "dilations": [
+    1,
+    1,
+    1,
+    1
+  ],
+  "separable": [
+    false,
+    false,
+    false,
+    false
+  ],
+  "dropout": 0.045454706086896945
 }

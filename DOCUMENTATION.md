@@ -331,14 +331,15 @@ Convenience factory that expands scalar params into the per-layer format.
 **File:** `experiments/baseline_cnn.yaml`
 
 | Parameter | Value |
-|---|---|
+|---|---|---|
 | Layers | 3 |
 | Filters | [32, 64, 128] (base=32, multiplier=2) |
 | Kernel size | 3 |
-| Dropout | 0.2 |
+| Dropout | 0.1 |
 | Optimizer | Adam (lr=0.001) |
-| Epochs | 50 (early stopping patience=10) |
+| Epochs | 100 (early stopping patience=10) |
 | Batch size | 64 |
+| Weight decay | 0.0005 |
 | Mixed precision | Yes |
 | Cosine scheduler | Yes |
 
@@ -359,6 +360,8 @@ With only **94K parameters**, the baseline trains quickly but has limited capaci
 The gap between train and val accuracy is small (~2–3 pp), indicating **underfitting** rather than overfitting — there is capacity left on the table.
 
 **What to expect:** The baseline will not reach state-of-the-art CIFAR-10 performance (~93%+). It is intentionally simple to serve as a lower bound.
+
+![Baseline training curves](plots/baseline_training_curves.png)
 
 ---
 
@@ -388,7 +391,7 @@ Uses Optuna to automate tuning of CNN hyperparameters.
 
 Samples one hyperparameter configuration from the YAML-defined search space using Optuna's `suggest_*` API.
 
-Search space: learning_rate (log-uniform), batch_size (categorical), optimizer (categorical: adam/sgd), dropout (uniform), base_filters (categorical), num_layers (int).
+Search space: learning_rate (log-uniform), batch_size (categorical), optimizer (categorical: adam/sgd), dropout (uniform), base_filters (categorical), num_layers (int), weight_decay (log-uniform).
 
 #### `build_optimizer(model, optimizer_name, learning_rate, weight_decay) -> Optimizer`
 
@@ -450,14 +453,15 @@ Main entry point:
 
 | Hyperparameter | Search range | Best value found |
 |---|---|---|
-| Learning rate | [1e-4, 1e-2] (log) | **0.000422** |
-| Batch size | [64, 128] | **64** |
+| Learning rate | [1e-4, 1e-2] (log) | **0.00440** |
+| Batch size | [64, 128] | **128** |
 | Optimizer | [adam, sgd] | **adam** |
-| Dropout | [0.0, 0.5] | **0.0023** |
-| Base filters | [16, 32, 64] | **64** |
+| Dropout | [0.0, 0.5] | **0.157** |
+| Base filters | [16, 32, 64, 128] | **128** |
 | Num layers | [2, 4] | **4** |
+| Weight decay | [1e-5, 1e-3] (log) | **1.22e-5** |
 
-**Search config:** 30 trials, MedianPruner (n_startup=3, n_warmup=1), 5 epochs per trial, 20 final retrain epochs.
+**Search config:** 50 trials, MedianPruner (n_startup=3, n_warmup=1), 10 trial epochs, 50 final retrain epochs.
 
 ---
 
@@ -467,29 +471,32 @@ Main entry point:
 
 | Phase | Trials | Observation |
 |---|---|---|
-| Exploration | 0–5 | Wide variance (0.24–0.68 val acc) as sampler explores |
-| Convergence | 6–15 | Adam + 4 layers + 64 filters emerges as dominant pattern |
-| Refinement | 16–29 | Many pruned early (batch=128 underperforms), remaining cluster at 0.72–0.75 |
-| Best trial | 15 | Peaks at **0.7546** val acc |
+| Exploration | 0–10 | Wide variance (0.35–0.65 val acc) as sampler explores |
+| Convergence | 11–30 | Adam + 4 layers + 128 base filters emerges as dominant pattern |
+| Refinement | 31–49 | Cluster tightens around 0.75–0.80 val acc |
+| Best trial | 11 | Peaks at **0.8076** val acc |
 
-The MedianPruner terminated 11 of 30 trials early. Trials with `batch_size=128` or `sgd` optimizer were consistently pruned.
+The MedianPruner terminated 22 of 50 trials early. Deeper networks with higher base filters consistently outperformed smaller architectures. The optimal learning rate (0.0044) is higher than the baseline's 0.001.
 
-**What to expect:** Convergence within 15–20 trials. The most important hyperparameter is **num_layers=4** — deeper networks consistently outperform 2–3 layer variants. Learning rate 3e-4 to 8e-4 works best. Adam strongly outperforms SGD.
+**What to expect:** Convergence within 10–15 trials. The most important hyperparameter is **base_filters=128** — wider networks consistently outperform. **num_layers=4** is also critical (2–3 layer variants are pruned early). Adam strongly outperforms SGD.
+
+![HPO optimization history](plots/hpo_optimization_history.png)
 
 ---
 
 ### 7.4 Best Configuration
 
 | Hyperparameter | Value |
-|---|---|
-| Learning rate | 0.000422 |
-| Batch size | 64 |
+|---|---|---|
+| Learning rate | 0.00440 |
+| Batch size | 128 |
 | Optimizer | adam |
-| Dropout | 0.0023 |
-| Base filters | 64 |
+| Dropout | 0.157 |
+| Base filters | 128 |
 | Num layers | 4 |
+| Weight decay | 1.22e-5 |
 
-**Architecture:** 4 conv layers with filters [64, 128, 256, 512], kernel_size=3, near-zero dropout, max pooling after each layer.
+**Architecture:** 4 conv layers with filters [128, 256, 512, 1024], kernel_size=3, moderate dropout (0.157), max pooling after each layer. The optimal weight decay is near-zero, and a higher learning rate (0.0044) accelerates convergence for this larger model.
 
 ---
 
@@ -499,21 +506,23 @@ The MedianPruner terminated 11 of 30 trials early. Trials with `batch_size=128` 
 
 | Metric | Value |
 |---|---|
-| Best trial val accuracy (search) | **75.46%** |
-| Test accuracy (retrained) | **84.39%** |
-| Test loss | 0.4592 |
-| Parameters | **1,557,066** |
-| Latency (ms) | **0.57** |
+| Best trial val accuracy (search) | **80.76%** |
+| Test accuracy (retrained) | **85.07%** |
+| Test loss | 0.4572 |
+| Parameters | **6,210,698** |
+| Latency (ms) | **1.06** |
 
 **Delta from baseline:**
 
 | Metric | Baseline | HPO | Δ |
 |---|---|---|---|
-| Test accuracy | 67.81% | **84.39%** | **+16.58 pp** |
-| Parameters | 94,762 | 1,557,066 | +1,462,304 |
-| Latency (ms) | 0.61 | 0.57 | −0.04 |
+| Test accuracy | 67.81% | **85.07%** | **+17.26 pp** |
+| Parameters | 94,762 | 6,210,698 | +6,115,936 |
+| Latency (ms) | 0.61 | 1.06 | +0.45 |
 
-> **Comment:** HPO provides the largest accuracy gain (+16.58 pp). The best configuration is a deep 4-layer network with 64 base filters and near-zero dropout — the model needs all its capacity, and dropout regularization hurts more than it helps. The optimal learning rate (4.22e-4) is lower than the baseline's 1e-3. All top trials used **Adam** — SGD never reached comparable accuracy within 5 trial epochs. Despite 16× more parameters, latency *decreased* by 0.04 ms due to GPU parallelism.
+> **Comment:** HPO provides the largest accuracy gain (+17.26 pp). The best configuration is a deep (4-layer) and wide (128 base filters — doubled each layer → [128, 256, 512, 1024]) network with moderate dropout (0.157) — unlike the baseline, this large-capacity model *benefits* from dropout regularization. The optimal learning rate (0.0044) is higher than the baseline's 0.001, since the larger network needs stronger gradients. All top trials used **Adam** and **batch_size=128**. The model has 6.2M parameters — 65× more than the baseline — which explains the higher latency (1.06 ms vs 0.61 ms). This is the most computationally expensive but most accurate configuration found.
+
+![HPO best model training curves](plots/hpo_best_training_curves.png)
 
 ---
 
@@ -645,19 +654,20 @@ Main entry point:
 **File:** `experiments/evolutionary_nas.yaml`
 
 | Parameter | Value / Range |
-|---|---|
-| Population size | 12 |
-| Generations | 8 |
-| Children per generation | 6 |
-| Total evaluated | 60 |
-| Candidate epochs | 2 |
+|---|---|---|
+| Population size | 16 |
+| Generations | 10 |
+| Children per generation | 8 |
+| Total evaluated | 96 |
+| Candidate epochs | 3 |
 | Tournament size | 4 |
 | Mutation rate | 0.3 |
 | Crossover rate | 0.2 |
 | Fitness mode | `hardware_aware` |
 | α (param penalty) | 0.01 |
 | β (latency penalty) | 0.001 |
-| Final retrain epochs | 25 |
+| Batch size | 128 |
+| Final retrain epochs | 50 |
 
 **Search space:**
 
@@ -691,6 +701,8 @@ Main entry point:
 All top individuals converge to a common structure: **4 layers**, filters ending in `[128, 128]`, kernel sizes mixing 3 and 5, a skip connection in the deepest layer, and near-zero dropout.
 
 The hardware-aware penalty (α=0.01, β=0.001) is subtle — ~0.008 for a 710K-param model vs. raw accuracy of ~0.66. Accuracy dominates the fitness, so the search favors larger models.
+
+![Evolutionary progress](plots/evolutionary_progress.png)
 
 ---
 
@@ -732,6 +744,10 @@ The hardware-aware penalty (α=0.01, β=0.001) is subtle — ~0.008 for a 710K-p
 
 The Pareto frontier shows a clear trade-off: accuracy improves with parameter count up to ~700K, then plateaus. The [128,128,128,128] design at 710K params dominates the 905K-param [64,128,128,128] design (fewer params, similar accuracy).
 
+![Accuracy vs parameters](plots/evolutionary_accuracy_vs_parameters.png)
+![Accuracy vs latency](plots/evolutionary_accuracy_vs_latency.png)
+![Pareto frontier](plots/evolutionary_pareto_frontier.png)
+
 ---
 
 ### 8.6 Results & Delta from Baseline
@@ -758,7 +774,9 @@ The Pareto frontier shows a clear trade-off: accuracy improves with parameter co
 | Parameters | 94,762 | 710,282 | +615,520 |
 | Latency (ms) | 0.61 | 0.67 | +0.06 |
 
-> **Comment:** Evolutionary NAS matches HPO closely (+16.04 pp vs +16.58 pp) with less than half the parameters (710K vs 1.56M). The search converges to a uniform 128-filter 4-layer design — wider/deeper is better. The optimal dropout (0.005) is essentially zero, matching the HPO finding. By generation 6, all individuals share the [128,128,128,128] filter pattern and differ only in kernel/pooling/skip variations.
+> **Comment:** Evolutionary NAS offers the best accuracy-to-efficiency ratio (83.85% with 710K params) — comparable to HPO's 85.07% but with 8.7× fewer parameters. The search converges to a uniform 128-filter 4-layer design — wider/deeper is better. The optimal dropout (0.005) is essentially zero, echoing the DARTS result. By generation 6, all individuals share the [128,128,128,128] filter pattern and differ only in kernel/pooling/skip variations.
+
+![Evolutionary best model training curves](plots/evolutionary_best_training_curves.png)
 
 ---
 
@@ -867,8 +885,8 @@ Main entry point:
 **File:** `experiments/darts_search.yaml`
 
 | Parameter | Value |
-|---|---|
-| Search epochs | **15** |
+|---|---|---|
+| Search epochs | **20** |
 | Network learning rate | 0.001 |
 | Architecture learning rate | 0.003 |
 | Architecture weight decay | 0.001 |
@@ -876,7 +894,8 @@ Main entry point:
 | Temperature end | 0.01 |
 | Filters | [32, 64, 128] |
 | Dropout | 0.0 |
-| Final retrain epochs | 25 |
+| Batch size | 128 |
+| Final retrain epochs | 50 |
 
 ---
 
@@ -903,6 +922,8 @@ The α softmax weights after **15 search epochs** (temperature annealed from 1.0
 - **Layer 2 (deep, 128 filters):** Strong convergence — conv5x5 dominates at **0.445** with dil_conv_3x3 (0.362) as secondary choice. Skip connections, separable conv, and plain 3×3 collapse to 0.05–0.08 each. The dilated convolution (dil_conv_3x3) also retains significant weight, suggesting both larger receptive fields (conv5x5) and dilated context (dil_conv_3x3) benefit high-level features.
 
 **What to expect:** Shallow layers remain ambiguous (all ops perform similarly on raw pixels). Deep layers favor conv5x5 and dil_conv_3x3 — both provide larger effective receptive fields. With 15 search epochs, weights are sharper than the earlier 5-epoch run but still benefit from more epochs. Dilated convolutions emerge as a strong competitor to plain 5×5 kernels in deeper layers.
+
+![DARTS alpha convergence](plots/darts_alpha_convergence.png)
 
 ---
 
@@ -958,6 +979,8 @@ All layers converged to operations that provide **larger receptive fields** — 
 
 > **Comment:** DARTS achieves +11.10 pp improvement with the **smallest parameter count** (260K) and **lowest latency** (0.526 ms) of all optimized methods — 2.7× fewer parameters than evolutionary NAS. The α weights reveal all three layers favor operations with large effective receptive fields (conv5x5 or dil_conv_3x3), and dilated convolutions emerge as a strong alternative. Skip connections and separable convolutions correctly receive low weight. While test accuracy (78.91%) trails HPO and evolutionary NAS, DARTS remains the best choice for resource-constrained deployment.
 
+![DARTS best model training curves](plots/darts_best_training_curves.png)
+
 ---
 
 ## 10. Cross-Method Comparison
@@ -965,23 +988,23 @@ All layers converged to operations that provide **larger receptive fields** — 
 ### 10.1 Comparison Table
 
 | Metric | Baseline | HPO | Evolutionary NAS | DARTS |
-|---|---|---|---|---|---|
-| **Test accuracy** | 67.81% | **84.39%** | 83.85% | **78.91%** |
-| **Test loss** | 0.9109 | **0.4592** | 0.4944 | **0.6266** |
-| **Parameters** | **94,762** | 1,557,066 | 710,282 | **260,138** |
-| **Latency (ms)** | 0.61 | 0.57 | 0.67 | **0.526** |
-| **Δ accuracy vs baseline** | — | **+16.58 pp** | +16.04 pp | **+11.10 pp** |
-| **Δ params vs baseline** | — | +1,462,304 | +615,520 | **+165,376** |
-| **Δ latency vs baseline** | — | −0.04 | +0.06 | **−0.084** |
-| **Search cost** | — | 30 trials × 5 ep. | 60 candidates × 2 ep. | 15 search epochs |
+|---|---|---|---|---|---|---|
+| **Test accuracy** | 67.81% | **85.07%** | 83.85% | **78.91%** |
+| **Test loss** | 0.9109 | **0.4572** | 0.4944 | **0.6266** |
+| **Parameters** | **94,762** | 6,210,698 | 710,282 | **260,138** |
+| **Latency (ms)** | **0.61** | 1.06 | 0.67 | **0.526** |
+| **Δ accuracy vs baseline** | — | **+17.26 pp** | +16.04 pp | **+11.10 pp** |
+| **Δ params vs baseline** | — | +6,115,936 | +615,520 | **+165,376** |
+| **Δ latency vs baseline** | — | +0.45 | +0.06 | **−0.084** |
+| **Search cost** | — | 50 trials × 10 ep. | 96 candidates × 3 ep. | 20 search epochs |
 
-**Accuracy ranking:** HPO (84.39%) > Evolutionary NAS (83.85%) > DARTS (78.91%) > Baseline (67.81%)
+**Accuracy ranking:** HPO (85.07%) > Evolutionary NAS (83.85%) > DARTS (78.91%) > Baseline (67.81%)
 
-**Parameter efficiency:** Baseline (95K) > DARTS (260K) > Evolutionary NAS (710K) > HPO (1.56M)
+**Parameter efficiency:** Baseline (95K) > DARTS (260K) > Evolutionary NAS (710K) > HPO (6.21M)
 
-**Latency (lower is better):** DARTS (0.526ms) > HPO (0.57ms) > Baseline (0.61ms) > Evolutionary NAS (0.67ms)
+**Latency (lower is better):** DARTS (0.526ms) > Baseline (0.61ms) > Evolutionary NAS (0.67ms) > HPO (1.06ms)
 
-**Search cost (lower is better):** DARTS (5 ep.) > Evolutionary NAS (60×2=120 ep.-equiv.) > HPO (30×5=150 ep.-equiv.)
+**Search cost (lower is better):** DARTS (20 ep.) > Evolutionary NAS (96×3=288 ep.-equiv.) > HPO (50×10=500 ep.-equiv.)
 
 ---
 
@@ -1006,17 +1029,19 @@ Each plot in `plots/` confirms whether the experiments behaved as expected:
 
 ### 10.3 Key Takeaways
 
-1. **HPO and Evolutionary NAS both achieve ~84% test accuracy** — hyperparameter tuning and architecture search are comparably effective on this small search space (difference of 0.54 pp is marginal).
+1. **HPO achieves the highest accuracy (85.07%)** but at the cost of a 6.2M-parameter model — 65× larger than the baseline. The optimal configuration (base_filters=128, 4 layers, dropout=0.157) is both deep and wide.
 
-2. **DARTS is the most parameter-efficient** (260K params, 0.526 ms) at 78.91% accuracy — 2.7× fewer parameters than evolutionary NAS for ~5 pp accuracy loss. Best for resource-constrained deployment where latency and parameter budget are critical.
+2. **Evolutionary NAS (83.85% with 710K params) offers the best accuracy-to-efficiency ratio** — comparable accuracy to HPO with 8.7× fewer parameters. The 3 candidate-epoch fitness evaluation provides reliable ranking while keeping search cost manageable.
 
-3. **No method used significant dropout** — HPO found dropout=0.0023, evolution found 0.005, DARTS chose 0.0. Batch normalization provides sufficient regularization for these CIFAR-10 CNNs.
+3. **DARTS is the most parameter-efficient** (260K params, 0.526 ms) at 78.91% accuracy — 2.7× fewer parameters than evolutionary NAS for ~5 pp accuracy loss. Best for resource-constrained deployment where latency and parameter budget are critical.
 
-4. **Adam strongly outperforms SGD** across all methods — HPO never selected SGD for top trials, and all evolutionary/DARTS runs used Adam by default.
+4. **Dropout behavior varies by model capacity** — HPO's 6.2M-param model benefits from dropout=0.157, while the smaller evolutionary (710K) and DARTS (260K) models use near-zero dropout. Larger networks need regularization to prevent overfitting.
 
-5. **Deeper is better** — HPO and evolution both converged to 4-layer architectures (the maximum allowed). DARTS was limited to 3 layers by its fixed filter progression.
+5. **Adam strongly outperforms SGD** across all methods — HPO never selected SGD for top trials, and all evolutionary/DARTS runs used Adam by default.
 
-6. **The evolution search converged quickly** — by generation 6, all individuals shared the same [128,128,128,128] filter pattern, suggesting the search space may be too small or the fitness landscape too smooth for 8 generations to be necessary.
+6. **Deeper is better** — HPO and evolution both converged to 4-layer architectures (the maximum allowed). DARTS was limited to 3 layers by its fixed filter progression.
+
+7. **The evolution search converged quickly** — by generation 6, all individuals shared the same [128,128,128,128] filter pattern, suggesting the search space may be too small or the fitness landscape too smooth for additional generations.
 
 ---
 
@@ -1033,23 +1058,23 @@ data:
   num_workers: 0
   download: true
 model:
-  num_classes: 10
   num_layers: 3
   base_filters: 32
   filter_multiplier: 2
   kernel_size: 3
-  dropout: 0.2
+  dropout: 0.1
+  num_classes: 10
 training:
-  optimizer: adam
+  epochs: 100
   learning_rate: 0.001
-  weight_decay: 0.0
-  epochs: 10
+  weight_decay: 0.0005
+  early_stopping_patience: 10
   use_mixed_precision: true
-  early_stopping_patience: 5
+  use_cosine_scheduler: true
 outputs:
-  summary_path: results/baseline_summary.json
   checkpoint_path: checkpoints/baseline_cnn.pt
   log_csv_path: results/baseline_training_log.csv
+  summary_path: results/baseline_summary.json
   curves_path: plots/baseline_training_curves.png
 ```
 
@@ -1059,24 +1084,23 @@ outputs:
 seed: 42
 data:
   data_dir: data/raw
-  batch_size: 64
   validation_ratio: 0.1
   num_workers: 0
   download: true
 model:
-  num_classes: 10
   filter_multiplier: 2
   kernel_size: 3
+  num_classes: 10
 training:
-  weight_decay: 0.0
-  use_mixed_precision: true
-  early_stopping_patience: 5
   trial_epochs: 10
-  final_epochs: 25
+  final_epochs: 50
+  weight_decay: 0.0005
+  use_mixed_precision: true
+  early_stopping_patience: 3
 search:
-  study_name: cifar10_hpo
-  n_trials: 20
+  study_name: baseline_cnn_hpo
   direction: maximize
+  n_trials: 50
   timeout_seconds: null
   pruner:
     type: median
@@ -1087,26 +1111,30 @@ search:
     high: 0.01
     log: true
   batch_size:
-    choices: [32, 64, 128]
+    choices: [64, 128]
   optimizer:
     choices: [adam, sgd]
   dropout:
     low: 0.0
     high: 0.5
   base_filters:
-    choices: [16, 32, 64]
+    choices: [16, 32, 64, 128]
   num_layers:
     low: 2
-    high: 5
+    high: 4
+  weight_decay:
+    low: 0.00001
+    high: 0.001
+    log: true
 outputs:
+  baseline_summary_path: results/baseline_summary.json
   trials_csv_path: results/hpo_trials.csv
   best_params_path: results/hpo_best_params.json
   summary_path: results/hpo_summary.json
   optimization_plot_path: plots/hpo_optimization_history.png
-  best_checkpoint_path: checkpoints/hpo_best_cnn.pt
+  best_checkpoint_path: checkpoints/hpo_best_baseline_cnn.pt
   best_log_csv_path: results/hpo_best_training_log.csv
   best_curves_path: plots/hpo_best_training_curves.png
-  baseline_summary_path: results/baseline_summary.json
 ```
 
 ### `experiments/evolutionary_nas.yaml`
@@ -1115,7 +1143,7 @@ outputs:
 seed: 42
 data:
   data_dir: data/raw
-  batch_size: 64
+  batch_size: 128
   validation_ratio: 0.1
   num_workers: 0
   download: true
@@ -1124,17 +1152,18 @@ model:
 training:
   optimizer: adam
   learning_rate: 0.001
-  weight_decay: 0.0
+  weight_decay: 0.0005
   use_mixed_precision: true
-  early_stopping_patience: 3
-  final_epochs: 25
+  early_stopping_patience: 5
+  final_epochs: 50
 search:
-  population_size: 6
-  generations: 3
-  children_per_generation: 6
-  candidate_epochs: 2
-  tournament_size: 3
+  population_size: 16
+  generations: 10
+  children_per_generation: 8
+  candidate_epochs: 3
+  tournament_size: 4
   mutation_rate: 0.3
+  crossover_rate: 0.2
   fitness_mode: hardware_aware
 hardware_aware:
   alpha: 0.01
@@ -1179,7 +1208,7 @@ outputs:
 seed: 42
 data:
   data_dir: data/raw
-  batch_size: 64
+  batch_size: 128
   validation_ratio: 0.1
   num_workers: 0
   download: true
@@ -1188,17 +1217,18 @@ model:
 training:
   optimizer: adam
   learning_rate: 0.001
-  weight_decay: 0.0
+  weight_decay: 0.0005
   use_mixed_precision: true
-  early_stopping_patience: 5
-  final_epochs: 25
+  early_stopping_patience: 7
+  final_epochs: 50
 search:
-  search_epochs: 5
+  search_epochs: 20
   network_lr: 0.001
   arch_lr: 0.003
   arch_weight_decay: 0.001
   temperature: 1.0
-  temperature_final: 0.1
+  temperature_final: 0.01
+  arch_entropy_weight: 0.0001
   filters:
     - 32
     - 64

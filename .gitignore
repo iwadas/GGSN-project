@@ -3,7 +3,10 @@ __pycache__/
 .ipynb_checkpoints/
 
 data/raw/
-checkpoints/
+checkpoints/*
+
+plots_old/
+results_old/
 
 .env
 .venv/

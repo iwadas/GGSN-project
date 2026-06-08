@@ -1,31 +1,31 @@
 {
-  "generations": 8,
-  "population_size": 12,
-  "children_per_generation": 6,
-  "evaluated_individuals": 60,
-  "best_search_fitness": 0.655430467899996,
+  "generations": 10,
+  "population_size": 16,
+  "children_per_generation": 8,
+  "evaluated_individuals": 96,
+  "best_search_fitness": 0.6720393985333326,
   "best_search_record": {
-    "generation": 6,
-    "individual_id": 43,
-    "fitness": 0.655430467899996,
-    "validation_accuracy": 0.6632,
-    "train_accuracy": 0.5784222222222222,
-    "train_loss": 1.1745478316413032,
-    "validation_loss": 0.9284723429679871,
-    "parameters": 710282,
-    "latency_ms": 0.6667121000039818,
-    "parameter_penalty": 0.00710282,
-    "latency_penalty": 0.0006667121000039818,
-    "genome": "{\"num_layers\": 4, \"filters\": [128, 128, 128, 128], \"kernel_sizes\": [3, 3, 5, 3], \"pooling_types\": [\"max\", \"max\", \"max\", \"avg\"], \"skip_connections\": [false, false, false, true], \"dropout\": 0.005075557219338556}",
+    "generation": 7,
+    "individual_id": 69,
+    "fitness": 0.6720393985333326,
+    "validation_accuracy": 0.6766,
+    "train_accuracy": 0.5798888888888889,
+    "train_loss": 1.1806693685531615,
+    "validation_loss": 0.925548324584961,
+    "parameters": 372618,
+    "latency_ms": 0.8344214666673603,
+    "parameter_penalty": 0.00372618,
+    "latency_penalty": 0.0008344214666673603,
+    "genome": "{\"num_layers\": 4, \"filters\": [64, 128, 64, 128], \"kernel_sizes\": [3, 3, 5, 3], \"pooling_types\": [\"avg\", \"max\", \"max\", \"max\"], \"skip_connections\": [true, false, true, true], \"dilations\": [1, 1, 1, 1], \"separable\": [false, false, false, false], \"dropout\": 0.045454706086896945}",
     "num_layers": 4,
-    "filters": "[128, 128, 128, 128]",
+    "filters": "[64, 128, 64, 128]",
     "kernel_sizes": "[3, 3, 5, 3]",
-    "pooling_types": "[\"max\", \"max\", \"max\", \"avg\"]",
-    "skip_connections": "[false, false, false, true]",
-    "dropout": 0.005075557219338556
+    "pooling_types": "[\"avg\", \"max\", \"max\", \"max\"]",
+    "skip_connections": "[true, false, true, true]",
+    "dropout": 0.045454706086896945
   },
   "pareto": {
-    "pareto_count": 17,
+    "pareto_count": 23,
     "pareto_csv_path": "results/evolutionary_pareto_frontier.csv",
     "accuracy_latency_plot_path": "plots/evolutionary_accuracy_vs_latency.png",
     "accuracy_parameters_plot_path": "plots/evolutionary_accuracy_vs_parameters.png",
@@ -35,9 +35,9 @@
     "genome": {
       "num_layers": 4,
       "filters": [
+        64,
         128,
-        128,
-        128,
+        64,
         128
       ],
       "kernel_sizes": [
@@ -47,25 +47,37 @@
         3
       ],
       "pooling_types": [
+        "avg",
         "max",
         "max",
-        "max",
-        "avg"
+        "max"
       ],
       "skip_connections": [
+        true,
         false,
-        false,
-        false,
+        true,
         true
       ],
-      "dropout": 0.005075557219338556
+      "dilations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "separable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "dropout": 0.045454706086896945
     },
-    "final_epochs": 25,
-    "parameters": 710282,
-    "best_validation_accuracy": 0.8448,
-    "test_loss": 0.49443931283950804,
-    "test_accuracy": 0.8385,
-    "latency_ms": 0.6736159666616004,
+    "final_epochs": 50,
+    "parameters": 372618,
+    "best_validation_accuracy": 0.8708,
+    "test_loss": 0.40193652839660643,
+    "test_accuracy": 0.8658,
+    "latency_ms": 1.079031866659837,
     "device": "cuda",
     "gpu": "Tesla T4",
     "checkpoint_path": "checkpoints/evolutionary_best_cnn.pt",
