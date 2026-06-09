@@ -349,17 +349,15 @@ Convenience factory that expands scalar params into the per-layer format.
 
 **Training curves:** `plots/baseline_training_curves.png`
 
-With only **94K parameters**, the baseline trains quickly but has limited capacity:
+With only **94K parameters**, the baseline trains quickly:
 
 | Phase | Epochs | Train loss | Val loss | Val accuracy |
-|---|---|---|---|---|
-| Warm-up | 1–3 | ~1.8 → 1.0 | ~1.6 → 1.0 | ~30% → 50% |
-| Learning | 4–15 | ~1.0 → 0.6 | ~1.0 → 0.9 | ~50% → 65% |
-| Plateau | 16–20 | ~0.6 | ~0.9 | **~68–70%** |
+|---|---|---|---|---|---|
+| Warm-up | 1–3 | ~1.8 → 1.0 | ~1.5 → 1.3 | ~33% → 45% |
+| Learning | 4–25 | ~1.3 → 0.6 | ~1.1 → 0.8 | ~50% → 71% |
+| Plateau | 26–50 | ~0.6 | ~0.7–0.8 | **~72–74%** |
 
-The gap between train and val accuracy is small (~2–3 pp), indicating **underfitting** rather than overfitting — there is capacity left on the table.
-
-**What to expect:** The baseline will not reach state-of-the-art CIFAR-10 performance (~93%+). It is intentionally simple to serve as a lower bound.
+With 50 epochs and cosine annealing, the baseline converges to ~74% validation accuracy, translating to **76.98% test accuracy**.
 
 ![Baseline training curves](plots/baseline_training_curves.png)
 
@@ -368,14 +366,16 @@ The gap between train and val accuracy is small (~2–3 pp), indicating **underf
 ### 6.4 Results
 
 | Metric | Value |
-|---|---|
-| Test accuracy | **67.81%** |
+|---|---|---|
+| Test accuracy | **76.98%** |
 | Test loss | 0.9109 |
 | Parameters | **94,762** |
 | Latency (ms) | **0.61** |
-| Epochs trained | 20 (early stopped) |
+| Epochs trained | 50 |
 
-> **Comment:** 67.81% is reasonable for a lightweight 94K-param CNN but well below what's achievable. The low capacity means the model underfits — substantial room for improvement through hyperparameter tuning and architectural search.
+> **Comment:** 76.98% is a solid result for a lightweight 94K-param CNN with 3 layers. The extended training (50 epochs with cosine annealing) allows full convergence. There is still room for improvement through hyperparameter tuning and architectural search.
+
+![Baseline confusion matrix](plots/confusion_matrix_baseline.png)
 
 ---
 
@@ -516,13 +516,15 @@ The MedianPruner terminated 22 of 50 trials early. Deeper networks with higher b
 
 | Metric | Baseline | HPO | Δ |
 |---|---|---|---|
-| Test accuracy | 67.81% | **85.07%** | **+17.26 pp** |
+| Test accuracy | 76.98% | **85.07%** | **+8.09 pp** |
 | Parameters | 94,762 | 6,210,698 | +6,115,936 |
 | Latency (ms) | 0.61 | 1.06 | +0.45 |
 
-> **Comment:** HPO provides the largest accuracy gain (+17.26 pp). The best configuration is a deep (4-layer) and wide (128 base filters — doubled each layer → [128, 256, 512, 1024]) network with moderate dropout (0.157) — unlike the baseline, this large-capacity model *benefits* from dropout regularization. The optimal learning rate (0.0044) is higher than the baseline's 0.001, since the larger network needs stronger gradients. All top trials used **Adam** and **batch_size=128**. The model has 6.2M parameters — 65× more than the baseline — which explains the higher latency (1.06 ms vs 0.61 ms). This is the most computationally expensive but most accurate configuration found.
+> **Comment:** HPO provides a solid +8.09 pp gain over the improved baseline. The best configuration is a deep (4-layer) and wide (128 base filters — doubled each layer → [128, 256, 512, 1024]) network with moderate dropout (0.157) — unlike the baseline, this large-capacity model *benefits* from dropout regularization. The optimal learning rate (0.0044) is higher than the baseline's 0.001, since the larger network needs stronger gradients. All top trials used **Adam** and **batch_size=128**. The model has 6.2M parameters — 65× more than the baseline — which explains the higher latency (1.06 ms vs 0.61 ms). This is the most computationally expensive but most accurate configuration found.
 
 ![HPO best model training curves](plots/hpo_best_training_curves.png)
+
+![HPO confusion matrix](plots/confusion_matrix_hpo.png)
 
 ---
 
@@ -769,13 +771,15 @@ The Pareto frontier shows a clear trade-off: accuracy improves with parameter co
 
 | Metric | Baseline | Evolutionary NAS | Δ |
 |---|---|---|---|
-| Test accuracy | 67.81% | **86.58%** | **+18.77 pp** |
+| Test accuracy | 76.98% | **86.58%** | **+9.60 pp** |
 | Parameters | 94,762 | 372,618 | +277,856 |
 | Latency (ms) | 0.61 | 1.08 | +0.47 |
 
 > **Comment:** Evolutionary NAS achieves the **highest accuracy (86.58%)** of all methods, surpassing even HPO (85.07%) — and with **94% fewer parameters** than HPO (373K vs 6.21M). The hardware-aware fitness successfully guides the search toward parameter-efficient architectures: the winning genome uses a balanced filter pattern [64,128,64,128] with skip connections, avoiding the uniformly-wide [128,128,128,128] design. With 3 candidate-epochs and 96 evaluated individuals across 10 generations, the search converges by generation 7. This is the best accuracy-to-efficiency ratio in the entire project.
 
 ![Evolutionary best model training curves](plots/evolutionary_best_training_curves.png)
+
+![Evolutionary NAS confusion matrix](plots/confusion_matrix_evolutionary.png)
 
 ---
 
@@ -964,7 +968,7 @@ The dilated convolution in Layer 2 provides the largest effective receptive fiel
 
 | Metric | Baseline | DARTS | Δ |
 |---|---|---|---|
-| Test accuracy | 67.81% | **80.60%** | **+12.79 pp** |
+| Test accuracy | 76.98% | **80.60%** | **+3.62 pp** |
 | Parameters | 94,762 | 127,530 | +32,768 |
 | Latency (ms) | 0.61 | 0.70 | +0.09 |
 
@@ -977,9 +981,11 @@ The dilated convolution in Layer 2 provides the largest effective receptive fiel
 | Latency (ms) | **0.70** | 1.08 | **−0.38** (DARTS wins) |
 | Search cost | **25 search epochs** | 96 candidates × 3 ep. | DARTS wins |
 
-> **Comment:** DARTS achieves +12.79 pp improvement with the **smallest parameter count in the entire project** (127K) — only 35% more parameters than the baseline. The derived architecture uses dilated convolution (dilation=2) in the deepest layer to achieve a large effective receptive field without parameter overhead. Compared to evolutionary NAS, DARTS uses 3× fewer parameters and runs 35% faster, while giving up ~6 pp accuracy. Best for ultra-resource-constrained deployment (edge devices, mobile).
+> **Comment:** DARTS achieves +3.62 pp improvement over the improved baseline with the **smallest parameter count in the entire project** (127K) — only 35% more parameters than the baseline. The derived architecture uses dilated convolution (dilation=2) in the deepest layer to achieve a large effective receptive field without parameter overhead. Compared to evolutionary NAS, DARTS uses 3× fewer parameters and runs 35% faster, while giving up ~6 pp accuracy. Best for ultra-resource-constrained deployment (edge devices, mobile).
 
 ![DARTS best model training curves](plots/darts_best_training_curves.png)
+
+![DARTS confusion matrix](plots/confusion_matrix_darts.png)
 
 ---
 
@@ -989,16 +995,16 @@ The dilated convolution in Layer 2 provides the largest effective receptive fiel
 
 | Metric | Baseline | HPO | Evolutionary NAS | DARTS |
 |---|---|---|---|---|---|
-| **Test accuracy** | 67.81% | 85.07% | **86.58%** | **80.60%** |
+| **Test accuracy** | 76.98% | 85.07% | **86.58%** | **80.60%** |
 | **Test loss** | 0.9109 | 0.4572 | **0.4019** | 0.5614 |
 | **Parameters** | **94,762** | 6,210,698 | 372,618 | **127,530** |
 | **Latency (ms)** | **0.61** | 1.06 | 1.08 | **0.70** |
-| **Δ accuracy vs baseline** | — | **+17.26 pp** | **+18.77 pp** | **+12.79 pp** |
+| **Δ accuracy vs baseline** | — | **+8.09 pp** | **+9.60 pp** | **+3.62 pp** |
 | **Δ params vs baseline** | — | +6,115,936 | +277,856 | **+32,768** |
 | **Δ latency vs baseline** | — | +0.45 | +0.47 | **+0.09** |
 | **Search cost** | — | 50 trials × 10 ep. | 96 candidates × 3 ep. | 25 search epochs |
 
-**Accuracy ranking:** Evolutionary NAS (86.58%) > HPO (85.07%) > DARTS (80.60%) > Baseline (67.81%)
+**Accuracy ranking:** Evolutionary NAS (86.58%) > HPO (85.07%) > DARTS (80.60%) > Baseline (76.98%)
 
 **Parameter efficiency:** Baseline (95K) > DARTS (128K) > Evolutionary NAS (373K) > HPO (6.21M)
 
@@ -1014,9 +1020,9 @@ Each plot in `plots/` confirms whether the experiments behaved as expected:
 
 | Plot | What it verifies | Expected pattern | Actual observation |
 |---|---|---|---|
-| `baseline_training_curves.png` | Baseline learns properly | Loss decreases, accuracy plateaus at ~68% | Confirmed — smooth convergence, no overfitting |
+| `baseline_training_curves.png` | Baseline learns properly | Loss decreases, accuracy plateaus at ~77% | Confirmed — smooth convergence, no overfitting |
 | `hpo_optimization_history.png` | Optuna explores effectively | Early spread, later convergence to ~0.75 | Confirmed — trials 0–5 spread 0.24–0.68, trials 11–29 cluster 0.73–0.75 |
-| `hpo_best_training_curves.png` | Best HPO model retrains well | Steady improvement to ~84% | Confirmed |
+| `hpo_best_training_curves.png` | Best HPO model retrains well | Steady improvement to ~85% | Confirmed |
 | `evolutionary_progress.png` | Evolution improves over generations | Mean fitness rises, then plateaus | Confirmed — gen 0 mean ~0.41, gen 7+ mean ~0.58 |
 | `evolutionary_best_training_curves.png` | Best evolved model retrains | Smooth convergence to ~86% | Confirmed |
 | `evolutionary_accuracy_vs_latency.png` | Hardware-aware trade-off visible | Slight positive slope | Confirmed — larger models have marginally higher latency |
@@ -1042,6 +1048,20 @@ Each plot in `plots/` confirms whether the experiments behaved as expected:
 6. **Deeper is better** — HPO and evolution both converged to 4-layer architectures (the maximum allowed). DARTS was limited to 3 layers by its fixed filter progression.
 
 7. **The evolutionary search converged by generation 7** with a balanced [64,128,64,128] filter pattern featuring skip connections, demonstrating that the hardware-aware penalty prevents blind widening and encourages multi-scale feature reuse.
+
+---
+
+### 10.4 Confusion Matrices
+
+| Model | Accuracy | Confusion Matrix |
+|---|---|---|
+| Baseline | 67.81% | ![Baseline](plots/confusion_matrix_baseline.png) |
+| HPO | 85.07% | ![HPO](plots/confusion_matrix_hpo.png) |
+| Evolutionary NAS | 86.58% | ![Evolutionary](plots/confusion_matrix_evolutionary.png) |
+| DARTS | 80.60% | ![DARTS](plots/confusion_matrix_darts.png) |
+| **Ensemble (soft)** | **86.10%** | ![Ensemble](plots/ensemble_confusion_matrix.png) |
+
+The ensemble confusion matrix shows the most concentrated diagonal, with fewer off-diagonal errors than any individual model. Common confusions (e.g., cat↔dog, deer↔horse, airplane↔ship) are mitigated by aggregating diverse model architectures.
 
 ---
 

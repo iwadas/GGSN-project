@@ -33,9 +33,9 @@
   },
   "baseline_comparison": {
     "baseline_summary_path": "results/baseline_summary.json",
-    "baseline_test_accuracy": 0.6781,
+    "baseline_test_accuracy": 0.7698,
     "hpo_test_accuracy": 0.8507,
-    "test_accuracy_delta": 0.17259999999999998,
+    "test_accuracy_delta": 0.0809,
     "baseline_parameters": 94762,
     "hpo_parameters": 6210698,
     "parameter_delta": 6115936,

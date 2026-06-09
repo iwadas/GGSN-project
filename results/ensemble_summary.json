@@ -1,0 +1,175 @@
+{
+  "device": "cpu",
+  "gpu": null,
+  "num_models": 4,
+  "models_included": [
+    "Baseline CNN",
+    "HPO (Optuna)",
+    "Evolutionary NAS",
+    "DARTS"
+  ],
+  "individual_results": {
+    "Baseline CNN": {
+      "test_accuracy": 0.7698000073432922,
+      "parameters": 94762,
+      "latency_ms": 1.5567419998114929,
+      "checkpoint": "checkpoints\\baseline_cnn.pt"
+    },
+    "HPO (Optuna)": {
+      "test_accuracy": 0.8507000207901001,
+      "parameters": 6210698,
+      "latency_ms": 11.066709000151604,
+      "checkpoint": "checkpoints\\hpo_best_baseline_cnn.pt"
+    },
+    "Evolutionary NAS": {
+      "test_accuracy": 0.8658000230789185,
+      "parameters": 372618,
+      "latency_ms": 2.9749840003205463,
+      "checkpoint": "checkpoints\\evolutionary_best_cnn.pt"
+    },
+    "DARTS": {
+      "test_accuracy": 0.8059999942779541,
+      "parameters": 127530,
+      "latency_ms": 2.099216000060551,
+      "checkpoint": "checkpoints\\darts_best_cnn.pt"
+    }
+  },
+  "ensemble_soft_voting_accuracy": 0.8610000014305115,
+  "ensemble_hard_voting_accuracy": 0.8467000126838684,
+  "best_individual": "Evolutionary NAS",
+  "ensemble_improvement_over_best": -0.004800021648406982,
+  "confusion_matrix": [
+    [
+      869,
+      8,
+      26,
+      10,
+      6,
+      1,
+      5,
+      8,
+      42,
+      25
+    ],
+    [
+      5,
+      952,
+      0,
+      1,
+      0,
+      1,
+      4,
+      1,
+      6,
+      30
+    ],
+    [
+      38,
+      0,
+      744,
+      29,
+      62,
+      35,
+      66,
+      11,
+      10,
+      5
+    ],
+    [
+      15,
+      0,
+      35,
+      695,
+      42,
+      112,
+      67,
+      19,
+      10,
+      5
+    ],
+    [
+      5,
+      1,
+      14,
+      23,
+      889,
+      13,
+      35,
+      18,
+      2,
+      0
+    ],
+    [
+      7,
+      1,
+      20,
+      106,
+      39,
+      788,
+      12,
+      24,
+      0,
+      3
+    ],
+    [
+      3,
+      0,
+      17,
+      19,
+      6,
+      9,
+      943,
+      1,
+      1,
+      1
+    ],
+    [
+      9,
+      0,
+      19,
+      21,
+      28,
+      25,
+      5,
+      888,
+      0,
+      5
+    ],
+    [
+      27,
+      11,
+      4,
+      5,
+      2,
+      2,
+      5,
+      0,
+      939,
+      5
+    ],
+    [
+      14,
+      47,
+      5,
+      5,
+      1,
+      0,
+      6,
+      2,
+      17,
+      903
+    ]
+  ],
+  "class_names": [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck"
+  ]
+}

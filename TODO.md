@@ -27,7 +27,7 @@ optimizing **Accuracy**, **Model size**, and **Inference latency** on CIFAR-10.
 - [x] `notebooks/baseline_cnn_colab.ipynb` — Notebook Colab
 
 ## Wyniki
-- Baseline: ~68% test accuracy, ~94K parametrów
+- Baseline: ~77% test accuracy, ~94K parametrów
 - Krzywe uczenia: `plots/baseline_training_curves.png`
 - Log: `results/baseline_training_log.csv`, `results/baseline_summary.json`
 
@@ -46,7 +46,7 @@ optimizing **Accuracy**, **Model size**, and **Inference latency** on CIFAR-10.
 - [x] `notebooks/hpo_baseline_colab.ipynb`
 
 ## Wyniki
-- HPO best: ~84% test accuracy, ~1.56M parametrów (+16.58 pp nad baseline)
+- HPO best: ~85% test accuracy, ~6.21M parametrów (+8.09 pp nad baseline)
 - Triale: `results/hpo_trials.csv`
 - Best params: `results/hpo_best_params.json`
 - Krzywe: `plots/hpo_best_training_curves.png`
@@ -68,7 +68,7 @@ optimizing **Accuracy**, **Model size**, and **Inference latency** on CIFAR-10.
 - [x] `notebooks/evolutionary_nas_colab.ipynb`
 
 ## Wyniki
-- Evolutionary best: ~84% test accuracy, ~710K parametrów
+- Evolutionary best: ~87% test accuracy, ~373K parametrów
 - Populacja: `results/evolutionary_population.csv`
 - Pareto frontier: `results/evolutionary_pareto_frontier.csv`
 - Wykresy: progres ewolucji, Pareto frontier, Accuracy vs Latency/Params
@@ -102,7 +102,7 @@ optimizing **Accuracy**, **Model size**, and **Inference latency** on CIFAR-10.
 - [x] `notebooks/darts_search_colab.ipynb`
 
 ## Wyniki
-- DARTS best: ~79% test accuracy, ~260K parametrów, ~0.53ms latency
+- DARTS best: ~81% test accuracy, ~128K parametrów, ~0.70ms latency
 - Alpha log: `results/darts_alpha_log.csv`
 - Derived genome: `results/darts_derived_genome.json`
 - Wykresy: alpha convergence, training curves
@@ -135,63 +135,29 @@ optimizing **Accuracy**, **Model size**, and **Inference latency** on CIFAR-10.
 
 # Phase 7 — Ensemble metod
 
-**Status:** ⬜ Do zrobienia
+**Status:** ✅ Done
 
-**Wymaganie wstępne:** Checkpointy wag modeli (`checkpoints/*.pt`) nie istnieją lokalnie — są w `.gitignore` i były tylko w runtime Colaba. Przed ensemble trzeba je wygenerować:
+**Wyniki:**
 
-| Checkpoint | Jak zdobyć | Szac. czas na T4 |
+| Model | Accuracy | Parametry |
 |---|---|---|
-| `checkpoints/baseline_cnn.pt` | `uv run python scripts/run_baseline.py` | ~5 min |
-| `checkpoints/hpo_best_baseline_cnn.pt` | `uv run python scripts/run_hpo.py` | ~15 min (50 epok final retrain) |
-| `checkpoints/evolutionary_best_cnn.pt` | `uv run python scripts/run_evolutionary_nas.py` | ~10 min (25 epok) |
-| `checkpoints/darts_best_cnn.pt` | `uv run python scripts/run_darts_search.py` | ~10 min (25 epok) |
+| Baseline | 76.98% | 95K |
+| HPO | 85.07% | 6.21M |
+| Evolutionary NAS | **86.58%** | 373K |
+| DARTS | 80.60% | 128K |
+| **Ensemble (soft)** | **86.10%** | — |
+| **Ensemble (hard)** | **84.67%** | — |
 
-**Razem: ~40 min na GPU (Colab T4).** Skrypty zrobią final retrain najlepszej architektury i zapiszą wagę do `checkpoints/`.
-
----
-
-## Cel
-
-Załadować wszystkie 4 wytrenowane modele i połączyć ich predykcje na testsecie — pokazać, że ensemble bije każdą metodę solo.
-
-## Zadania
-
-- [ ] **Przygotowanie — retrain 4 modeli** (jeśli checkpointy nie istnieją):
-  - Kolejno odpalić skrypty z Phase 1-5 na GPU
-  - Zweryfikować czy `checkpoints/` zawiera 4 pliki `.pt`
-
-- [ ] **Skrypt `scripts/run_ensemble.py`** który:
-  - Ładuje 4 checkpointy z `checkpoints/` i mapuje do odpowiednich klas:
-    - `baseline_cnn.pt` → `BaselineCNN` (models/baseline_cnn.py)
-    - `hpo_best_baseline_cnn.pt` → `BaselineCNN` (ten sam model, inne hiperparametry)
-    - `evolutionary_best_cnn.pt` → `SearchCNN` (models/search_cnn.py — genom z `results/evolutionary_best_genome.json`)
-    - `darts_best_cnn.pt` → `SearchCNN` (models/search_cnn.py — genom z `results/darts_derived_genome.json`)
-  - Uruchamia inferencję na całym testsecie dla każdego modelu osobno
-  - Implementuje 2 warianty ensemble:
-    - **Soft voting** — `torch.stack([logits_1, logits_2, ...]).mean(0)` → argmax
-    - **Hard voting** — większościowy wybór klasy po argmax każdego modelu
-  - Liczy accuracy: każda metoda solo + ensemble soft + ensemble hard
-  - Zapisuje wyniki do `results/ensemble_summary.json`
-
-- [ ] **Wykres `plots/ensemble_comparison.png`**:
-  - Słupki accuracy: baseline, HPO, evo, DARTS, ensemble (soft), ensemble (hard)
-  - Linia lub adnotacja pokazująca improvement nad najlepszą solo metodą
-
-- [ ] **Opcjonalnie: subset ensemble** — ensemble bez baseline'a, top-3, tylko top-2 itp.
-
-## Spodziewany wynik
-
-- Ensemble soft voting: ~85-86% test accuracy (vs 84.39% najlepszej solo)
-- Hard voting: porównywalny lub nieco niższy od soft
-- Nawet sam baseline obniża ensemble — warto pokazać wariant bez niego
+Soft voting nie bije najlepszej solo metody (Evo 86.58%) — ensemble jest zdominowany przez baseline (77%). Wariant bez baseline'a może dać lepszy wynik.
 
 ## Pliki wynikowe
 
 | Plik | Opis |
 |---|---|
-| `results/ensemble_summary.json` | Accuracy każdej metody + ensemble (soft/hard) + subset warianty |
+| `results/ensemble_summary.json` | Accuracy każdej metody + ensemble (soft/hard) |
 | `plots/ensemble_comparison.png` | Wykres słupkowy porównawczy |
 | `scripts/run_ensemble.py` | Skrypt ensemble |
+| `plots/confusion_matrix_{model}.png` | Macierz pomyłek dla każdego modelu + ensemble |
 
 ---
 
@@ -199,13 +165,13 @@ Załadować wszystkie 4 wytrenowane modele i połączyć ich predykcje na testse
 
 **Status:** ⬜ Do zrobienia
 
-**Wymaganie wstępne:** To samo co w Phase 7 — potrzebny checkpoint HPO modelu (`checkpoints/hpo_best_baseline_cnn.pt`) jako teacher oraz DARTS-derived genome (`results/darts_derived_genome.json`) do zbudowania studenta.
+**Wymaganie wstępne:** Checkpoint HPO (`checkpoints/hpo_best_baseline_cnn.pt`) jako teacher oraz DARTS-derived genome (`results/darts_derived_genome.json`) do zbudowania studenta.
 
 ---
 
 ## Cel
 
-Skompresować wiedzę z dużego modelu HPO (1.56M params, **teacher**, ~84% accuracy) do małego modelu DARTS-style (260K params, **student**) używając distillation loss. Pokazać, że student po dystylacji jest bliżej nauczyciela niż oryginalny DARTS.
+Skompresować wiedzę z dużego modelu HPO (6.21M params, **teacher**, ~85% accuracy) do małego modelu DARTS-style (128K params, **student**) używając distillation loss. Pokazać, że student po dystylacji jest bliżej nauczyciela niż oryginalny DARTS.
 
 ## Koncepcja
 
@@ -233,17 +199,19 @@ gdzie:
   - Ładuje **teacher**: `BaselineCNN` z `checkpoints/hpo_best_baseline_cnn.pt`
   - Buduje **student**: `SearchCNN` z genomu `results/darts_derived_genome.json`
   - Zamraża nauczyciela (`model.eval()`, `torch.no_grad()`)
-  - Trenuje studenta z distillation loss przez 25-50 epok
-  - Eksperymentuje z hiperparametrami distillation:
+  - **Prekomputowuje logity nauczyciela** na całym treningowym zbiorze (oszczędność czasu — teacher nie musi być odpalany przy każdej epoce)
+  - Trenuje studenta z distillation loss przez 30 epok
+  - Grid search hiperparametrów:
     - **Temperatura**: T = 1, 2, 4, 8
     - **Alpha**: α = 0.3, 0.5, 0.7
-    - Zapisuje wyniki dla każdej kombinacji
+    - Razem: **12 wariantów**
+  - Zapisuje wyniki dla każdej kombinacji
 
 - [ ] **Ewaluacja i porównanie**:
   - Accuracy studenta (distilled) vs studenta (oryginalny DARTS)
   - Accuracy studenta vs nauczyciela (HPO)
   - Ile udało się odzyskać z luki accuracy: `(acc_distilled - acc_original_darts) / (acc_teacher - acc_original_darts) * 100%`
-  - Kompresja: 1.56M → 260K parametrów (~83% redukcji)
+  - Kompresja: 6.21M → 128K parametrów (~98% redukcji)
 
 - [ ] **Wykresy**:
   - `plots/distillation_training_curves.png` — krzywe treningu studenta (loss, accuracy)
@@ -252,16 +220,19 @@ gdzie:
 
 ## Spodziewany wynik
 
+Luka do odzyskania: 85.07% (teacher) − 80.60% (student original) = **4.47 pp**
+
 | Model | Accuracy | Parametry |
 |---|---|---|
-| Teacher (HPO) | ~84.4% | 1.56M |
-| Student (oryginalny DARTS) | ~78.9% | 260K |
-| **Student distilled** | **~82-83%** | **260K** |
-| Recovery rate | ~50-70% luki | — |
+| Teacher (HPO) | **85.07%** | 6.21M |
+| Student (oryginalny DARTS) | **80.60%** | 128K |
+| **Student distilled** | **~82.8–83.7%** | **128K** |
+| Recovery rate | 50–70% luki | — |
 
-- Gain: ~3-4 pp nad oryginalnym DARTS
-- Tylko ~1-2 pp straty do nauczyciela przy 83% mniejszym modelu
-- Wyższa temperatura (T=4-8) powinna działać lepiej — bardziej miękki rozkład niesie więcej信息 o relacjach między klasami
+- Gain: ~2.2–3.1 pp nad oryginalnym DARTSem
+- Strata do nauczyciela: ~1.5–2.5 pp przy **48× mniejszym modelu**
+- Wyższa temperatura (T=4–8) powinna działać lepiej — bardziej miękki rozkład niesie więcej informacji o relacjach między klasami
+- Czas: ~2h na T4 (12 wariantów × ~10 min)
 
 ## Pliki wynikowe
 

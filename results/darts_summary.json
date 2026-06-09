@@ -102,11 +102,11 @@
   "comparison_with_evolutionary_nas": {
     "evolutionary_nas_summary_path": "results/evolutionary_summary.json",
     "darts_test_accuracy": 0.806,
-    "evolutionary_test_accuracy": 0.8385,
-    "test_accuracy_delta": -0.03249999999999997,
+    "evolutionary_test_accuracy": 0.8658,
+    "test_accuracy_delta": -0.0598,
     "darts_parameters": 127530,
-    "evolutionary_parameters": 710282,
+    "evolutionary_parameters": 372618,
     "darts_latency_ms": 0.6995534599991515,
-    "evolutionary_latency_ms": 0.6736159666616004
+    "evolutionary_latency_ms": 1.079031866659837
   }
 }
