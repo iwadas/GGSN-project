@@ -104,9 +104,13 @@ def run_distillation() -> dict:
     teacher.eval()
     print(f"  Teacher parameters: {teacher_params:,} ({teacher_params/1e3:.0f}K)")
 
-    teacher_test_loss, teacher_test_acc = evaluate(
+    teacher_result = evaluate(
         teacher, test_loader, nn.CrossEntropyLoss(), device
     )
+
+    teacher_test_loss = teacher_result.loss
+    teacher_test_acc = teacher_result.accuracy
+
     print(f"  Teacher test accuracy: {teacher_test_acc*100:.2f}%")
 
     student_params = count_parameters(load_pretrained_student())
