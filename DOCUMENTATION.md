@@ -35,8 +35,13 @@
     - [Comparison Table](#101-comparison-table)
     - [Plot Verification](#102-plot-verification)
     - [Key Takeaways](#103-key-takeaways)
-11. [Configuration Reference](#11-configuration-reference)
-12. [CLI Entrypoints & How to Run](#12-cli-entrypoints--how-to-run)
+11. [Knowledge Distillation](#11-knowledge-distillation)
+    - [Method](#111-method)
+    - [Results](#112-results)
+    - [Analysis](#113-analysis)
+    - [Output Files](#114-output-files)
+12. [Configuration Reference](#12-configuration-reference)
+13. [CLI Entrypoints & How to Run](#13-cli-entrypoints--how-to-run)
 
 ---
 
@@ -1065,7 +1070,80 @@ The ensemble confusion matrix shows the most concentrated diagonal, with fewer o
 
 ---
 
-## 11. Configuration Reference
+## 11. Knowledge Distillation
+
+Implements HPO→DARTS knowledge distillation: compressing a large teacher (HPO, 6.21M params) into a small student (DARTS-derived, 128K params).
+
+### 11.1 Method
+
+**File:** `training/distillation.py`
+
+**Loss function:**
+```
+total_loss = α · KL_div(softmax(student/T), softmax(teacher/T)) · T²
+           + (1-α) · CrossEntropy(student, labels)
+```
+
+**Teacher:** HPO BaselineCNN (85.07%, 6.21M params) — frozen, logits precomputed.
+
+**Student:** DARTS-derived SearchCNN (127K params) — architecture from `results/darts_derived_genome.json`.
+
+**Grid search:** 12 variants — T ∈ {1, 2, 4, 8} × α ∈ {0.3, 0.5, 0.7}, 30 epochs each.
+
+### 11.2 Results
+
+| Temperature | Alpha | Test accuracy | Δ vs student | Δ vs teacher |
+|---|---|---|---|---|
+| **2** | **0.3** | **77.64%** | −2.96 pp | −7.43 pp |
+| 8 | 0.3 | 76.26% | −4.34 pp | −8.44 pp |
+| 4 | 0.3 | 74.66% | −5.94 pp | −10.41 pp |
+| 1 | 0.3 | 74.33% | −6.27 pp | −10.74 pp |
+| 2 | 0.5 | 72.93% | −7.67 pp | −12.14 pp |
+| 1 | 0.5 | 72.66% | −7.94 pp | −12.41 pp |
+| 8 | 0.5 | 72.07% | −8.53 pp | −13.63 pp |
+| 4 | 0.5 | 69.48% | −11.12 pp | −16.22 pp |
+| 1 | 0.7 | 64.22% | −16.38 pp | −21.48 pp |
+| 2 | 0.7 | 62.57% | −18.03 pp | −23.13 pp |
+| 4 | 0.7 | 60.87% | −19.73 pp | −24.20 pp |
+| 8 | 0.7 | 58.25% | −22.35 pp | −27.42 pp |
+
+**Best variant:** T=2, α=0.3 — **77.64%** test accuracy.
+
+**Comparison with baselines:**
+
+| Metric | Teacher (HPO) | Student original (DARTS) | Student distilled (best) |
+|---|---|---|---|
+| Test accuracy | **85.07%** | 80.60% | 77.64% |
+| Parameters | 6,210,698 | 127,530 | 127,530 |
+| Latency (ms) | 1.06 | 0.70 | 0.70 |
+| Recovery rate | — | — | **0%** |
+
+### 11.3 Analysis
+
+**The distillation did not improve student performance.** All 12 variants underperformed the original DARTS student (80.60%) trained with standard cross-entropy. Key observations:
+
+1. **Low α (0.3) + low T (2) works best** — the student benefits from a small distillation influence, but even the best variant (−2.96 pp) cannot match the original DARTS.
+
+2. **High α (0.7) catastrophically fails** — accuracy drops to 58–64%. Too much emphasis on teacher soft targets prevents the student from learning from true labels.
+
+3. **High temperature (T=8) hurt at all α levels** — overly smoothed distributions lose class-discriminative information.
+
+4. **Root cause hypothesis:** The teacher (HPO, 85%) and student (DARTS, 80.6%) have different architectural priors. The teacher is a 4-layer uniformly-wide CNN ([128,256,512,1024]), while the student is a 3-layer heterogeneous design ([32,64,128] with dilation). The teacher's logit distribution may not be a good soft target for this fundamentally different architecture. Additionally, the student was trained from scratch with distillation — no pre-training phase where it first learns from hard labels alone.
+
+5. **What this tells us:** Not all teachers are suitable for all students. When teacher and student architectures differ significantly, distillation can actually harm performance. A better approach would be to use a teacher with a more similar architectural prior, or to pre-train the student with hard labels before fine-tuning with distillation.
+
+### 11.4 Output Files
+
+| File | Contents |
+|---|---|
+| `results/distillation_summary.json` | Full grid search results (12 variants) |
+| `plots/distillation_comparison.png` | Accuracy comparison bar chart |
+
+![Distillation comparison](plots/distillation_comparison.png)
+
+---
+
+## 12. Configuration Reference
 
 ### `experiments/baseline_cnn.yaml`
 
@@ -1271,7 +1349,7 @@ outputs:
 
 ---
 
-## 12. CLI Entrypoints & How to Run
+## 13. CLI Entrypoints & How to Run
 
 ### Scripts
 
@@ -1281,6 +1359,7 @@ outputs:
 | `scripts/run_hpo.py` | `experiments/hpo_baseline.yaml` | `uv run python scripts/run_hpo.py` |
 | `scripts/run_evolutionary_nas.py` | `experiments/evolutionary_nas.yaml` | `uv run python scripts/run_evolutionary_nas.py` |
 | `scripts/run_darts_search.py` | `experiments/darts_search.yaml` | `uv run python scripts/run_darts_search.py` |
+| `scripts/run_distillation.py` | — | `uv run python scripts/run_distillation.py` |
 
 All scripts accept `--config <path>` to override the default config path.
 
